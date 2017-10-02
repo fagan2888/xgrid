@@ -3,14 +3,14 @@
 % runs using xolotl (https://github.com/sg-s/xolotl)
 % needs the parallel computing toolbox 
 
-classdef psychopomp 
+classdef psychopomp < handle
 
 	properties
 		current_pool@parallel.Pool
 		parameters
 		parameters2 % for some reason parameters is invisible to par workers
 		x@xolotl
-		post_sim_func@function_handle
+		post_sim_func
 		n_func_outputs
 	end % end props
 
@@ -19,6 +19,7 @@ classdef psychopomp
 		allowed_param_names
 		nparams
 		num_workers
+		workers
 	end
 
 
@@ -77,12 +78,27 @@ classdef psychopomp
 			for i = 1:self.num_workers
 				F(i) = parfeval(@self.simulate_core,1,i);
 			end
-			ok = wait(F);
-
+			self.workers = F;
+		
 		end % end simulate 
 
-		function o = simulate_core(self,idx)
+		function fetchOutputs(self)
+			F = self.workers;
+			% fetch and merge outputs
+			for i = 1:length(F)
+				sim_data = fetchOutputs(F(i));
+				for j = 1:length(sim_data)
+					temp = sim_data{j};
+					idx = ~isnan(temp(1,:));
+					self.data{j}(:,idx) = temp(:,idx);
+				end
+			end
+		end
 
+		function data = simulate_core(self,idx)
+
+			% copy the data
+			data = self.data;
 
 			params = self.parameters2;
 			njobs_per_worker = ceil(self.nparams/self.num_workers);
@@ -96,17 +112,36 @@ classdef psychopomp
 			this_param = struct;
 			
 			for j = a:z
+				o = j; % is this useful?
 				for i = 1:length(f)
 					this_param.(f{i}(4:end)) = params.(f{i})(j);
 				end
 
 				self.x.updateLocalParameters(this_param);
 				[V,Ca] = self.x.integrate;
-			end
-			o = V;
-			
 
+				% call the post-stim functions
+				for i = 1:length(self.post_sim_func)
+					data{i}(:,j) = self.post_sim_func{i}(V,Ca);
+				end 
+
+			end
+
+		
 			
+		end
+
+		function setDataDims(self,value)
+			assert(min(value)>0,'Data dimensions should be > 0')
+			assert(all((round(value) - value) == 0),'Data Dimensions should be integers')
+			assert(~isempty(self.parameters),'First set parameters')
+			f = fieldnames(self.parameters);
+			n_sims = length(self.parameters.(f{1}));
+			n_outputs = length(value);
+			self.data = cell(n_outputs,1);
+			for i = 1:n_outputs
+				self.data{i} = NaN(value(i),n_sims);
+			end
 		end
 
 	end % end methods 
