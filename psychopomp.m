@@ -7,19 +7,23 @@ classdef psychopomp < handle
 
 	properties
 		current_pool@parallel.Pool
-		parameters
-		parameters2 % for some reason parameters is invisible to par workers
 		x@xolotl
 		post_sim_func
 		n_func_outputs
+		n_batches = 10; % per worker
+		data_size
 	end % end props
 
 	properties (SetAccess = protected)
 		data 
 		allowed_param_names
-		nparams
 		num_workers
 		workers
+		n_sims
+	end
+
+	properties (Access = protected)
+		psychopomp_folder 
 	end
 
 
@@ -29,6 +33,7 @@ classdef psychopomp < handle
 			% get the current pool, and start one if needed
 			self.current_pool = gcp;
 			self.num_workers = self.current_pool.NumWorkers;
+			self.psychopomp_folder = fileparts(which(mfilename));
 
 		end
 
@@ -38,28 +43,24 @@ classdef psychopomp < handle
 			self.n_func_outputs = value;
 		end % end set n_func_outputs 
 
-		function self = set.parameters(self,value)
-			if isempty(self.x)
-				error('Assign Xolotl object first')
+		function batchify(self,params,param_names)
+			assert(~isempty(self.x),'First configure the xolotl object')
+			n_sims = size(params,2);
+			self.n_sims = n_sims;
+			assert(size(params,1) == length(param_names),'Param names does not match parameter dimensions')
+			xhash = self.x.hash;
+			n_jobs = self.num_workers*self.n_batches;
+			job_size = ceil(n_sims/n_jobs);
+			idx = 1; c = 1;
+			while idx < n_sims
+				z = idx+job_size;
+				if z > n_sims
+					z = n_sims;
+				end
+				this_params = params(:,idx:z);
+				save([self.psychopomp_folder oss 'do' oss 'job_' oval(c) '.ppp'],'this_params','param_names','xhash');
+				idx = z + 1; c = c + 1;
 			end
-			assert(isstruct(value),'parameters should be a structure')
-			assert(length(value) == 1,'parameters should be a structure of unit size')
-
-			% check that every field of parameters exists in allowed_param_names
-			f = fieldnames(value);
-			for i = 1:length(f)
-				assert(any(strcmp(f{i},self.allowed_param_names)),'Parameters contain a field that does not match anything in the xololt object')
-			end
-
-			% the length of every field should be the same 
-			nparams = NaN(length(f),1);
-			for i = 1:length(f)
-				nparams(i) = length(value.(f{i}));
-			end
-			assert(min(nparams) == max(nparams),'All parameter fields should have the same length')
-			self.nparams = nparams(1);
-			self.parameters = value;
-			self.parameters2 = self.parameters;
 		end
 
 		function self = set.x(self,value)
@@ -75,73 +76,122 @@ classdef psychopomp < handle
 		end % end set xolotl object
 
 		function simulate(self)
+
+			% check that every job has the correct hash
+			do_folder = [self.psychopomp_folder oss 'do' oss ];
+			allfiles = dir([do_folder '*.ppp']);
+			for i = 1:length(allfiles)
+				m = matfile(joinPath(allfiles(i).folder,allfiles(i).name));
+				assert(strcmp(self.x.hash,m.xhash),'At least one job didnt match the hash of the currently configured Xolotl object')
+			end
+
+
+			% first run one task, and time it 
+			tic; 
+			self.simulate_core(1,1);
+			t = toc;
+			stagger_time = t/(self.num_workers+1);
+
+			% report estimated completion time
+			t_end = oval((length(allfiles)*t)/self.num_workers);
+			disp(['Estimated running time is ' t_end 's.'])
+
 			for i = 1:self.num_workers
-				F(i) = parfeval(@self.simulate_core,1,i);
+				F(i) = parfeval(@self.simulate_core,0,i,Inf);
+				pause(stagger_time)
 			end
 			self.workers = F;
 		
 		end % end simulate 
 
-		function fetchOutputs(self)
-			F = self.workers;
-			% fetch and merge outputs
-			for i = 1:length(F)
-				sim_data = fetchOutputs(F(i));
-				for j = 1:length(sim_data)
-					temp = sim_data{j};
-					idx = ~isnan(temp(1,:));
-					self.data{j}(:,idx) = temp(:,idx);
-				end
+
+		function cleanup(self)
+			do_folder = [self.psychopomp_folder oss 'do' oss ];
+			doing_folder = [self.psychopomp_folder oss 'doing' oss ];
+			done_folder = [self.psychopomp_folder oss 'done' oss ];
+
+			% remove all .ppp files
+			allfiles = dir([do_folder '*.ppp']);
+			for i = 1:length(allfiles)
+				delete(joinPath(allfiles(i).folder,allfiles(i).name))
 			end
+			allfiles = dir([doing_folder '*.ppp']);
+			for i = 1:length(allfiles)
+				delete(joinPath(allfiles(i).folder,allfiles(i).name))
+			end
+			allfiles = dir([done_folder '*.ppp']);
+			for i = 1:length(allfiles)
+				delete(joinPath(allfiles(i).folder,allfiles(i).name))
+			end
+
 		end
 
-		function data = simulate_core(self,idx)
+		function data = simulate_core(self,idx,n_runs)
 
-			% copy the data
-			data = self.data;
 
-			params = self.parameters2;
-			njobs_per_worker = ceil(self.nparams/self.num_workers);
-			a = (idx-1)*njobs_per_worker + 1;
-			z = idx*njobs_per_worker;
-			if z > self.nparams
-				z = self.nparams;
-			end
-			
-			f = fieldnames(params);
-			this_param = struct;
-			
-			for j = a:z
-				o = j; % is this useful?
-				for i = 1:length(f)
-					this_param.(f{i}(4:end)) = params.(f{i})(j);
+			while n_runs > 0
+
+				% grab a job file and move it to doing 
+				do_folder = [self.psychopomp_folder oss 'do' oss ];
+				doing_folder = [self.psychopomp_folder oss 'doing' oss ];
+				done_folder = [self.psychopomp_folder oss 'done' oss ];
+				free_jobs = dir([ do_folder '*.ppp']);
+
+				if length(free_jobs) == 0
+					return
 				end
 
-				self.x.updateLocalParameters(this_param);
-				[V,Ca] = self.x.integrate;
+				try
+					this_job = free_jobs(idx).name;
+				catch
+					this_job = free_jobs(1).name;
+				end
 
-				% call the post-stim functions
-				for i = 1:length(self.post_sim_func)
-					data{i}(:,j) = self.post_sim_func{i}(V,Ca);
-				end 
+				try
+					movefile([do_folder this_job],[doing_folder this_job])
+				catch
+					pause(1)
+				end
 
+				% load the file 
+				load([doing_folder this_job],'-mat')
+
+				% make data placeholders
+				for i = 1:length(self.data_size)
+					data{i} = NaN(self.data_size(i),size(this_params,2));
+				end
+				
+				for i = 1:size(this_params,2)
+					% update params
+					for j = 1:length(param_names)
+						eval(['self.x.' strrep(param_names{j},'_','.') ' = this_params(' mat2str(j),',' mat2str(i) ');'])
+					end
+
+					% run the model
+					try
+						[V,Ca] = self.x.integrate;
+
+						% call the post-stim functions
+						for j = 1:length(self.post_sim_func)
+							data{j}(:,i) = self.post_sim_func{j}(V,Ca);
+						end 
+					catch
+					end
+
+				end
+
+				% save the data 
+				save([done_folder this_job '.data'],'data')
+
+				% move the job into the done folder
+				try
+					movefile([doing_folder this_job],[done_folder this_job])
+				catch
+				end
+
+				n_runs = n_runs - 1;
 			end
-
-		
 			
-		end
-
-		function setDataDims(self,value)
-			assert(min(value)>0,'Data dimensions should be > 0')
-			assert(all((round(value) - value) == 0),'Data Dimensions should be integers')
-			assert(~isempty(self.parameters),'First set parameters')
-			f = fieldnames(self.parameters);
-			n_sims = length(self.parameters.(f{1}));
-			n_outputs = length(value);
-			self.data = cell(n_outputs,1);
-			for i = 1:n_outputs
-				self.data{i} = NaN(value(i),n_sims);
-			end
 		end
 
 	end % end methods 
