@@ -19,22 +19,22 @@ Ca_prom = std(Ca);
 
 % there should be at least three (we skip the first one)
 if length(peak_Ca)<3
-	disp('Less than three peaks')
+	%disp('Less than three peaks')
 	return
 end
 
 % check for similarity of peak heighrs 
 if std(peak_Ca(2:end))/(mean(peak_Ca(2:end))) > .2
-	disp('Calcium peaks not similar enough')
-	disp(std(peak_Ca(2:end))/(mean(peak_Ca(2:end))))
+	%disp('Calcium peaks not similar enough')
+	%disp(std(peak_Ca(2:end))/(mean(peak_Ca(2:end))))
 	return
 end
 
 burst_durations = diff(burst_peak_loc(2:end));
 
 if std(burst_durations)/mean(burst_durations) > 0.1
-	disp('Burst durations too variable')
-	disp(std(burst_durations)/mean(burst_durations))
+	%disp('Burst durations too variable')
+	%disp(std(burst_durations)/mean(burst_durations))
 	return
 end
 

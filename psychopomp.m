@@ -3,7 +3,7 @@
 % runs using xolotl (https://github.com/sg-s/xolotl)
 % needs the parallel computing toolbox 
 
-classdef psychopomp < handle
+classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 	properties
 		current_pool@parallel.Pool
@@ -15,7 +15,6 @@ classdef psychopomp < handle
 	end % end props
 
 	properties (SetAccess = protected)
-		data 
 		allowed_param_names
 		num_workers
 		workers
@@ -24,8 +23,70 @@ classdef psychopomp < handle
 
 	properties (Access = protected)
 		psychopomp_folder 
+		sim_start_time
 	end
 
+
+	methods (Access = protected)
+        function displayScalarObject(self)
+            url = 'https://gitlab.com/psychopomp/';
+            nc = feature('numcores');
+            fprintf(['<a href="' url '">psychopomp</a> is using ' oval(self.num_workers) '/' oval(2*nc) ' threads on ' getComputerName '\n']);
+            if isempty(self.x)
+            	fprintf(['Xolotl has not been configured \n \n'])
+            else
+            	fprintf(['Xolotl has been configured, with hash: ' self.x.hash '\n \n'])
+            end
+			do_folder = [self.psychopomp_folder oss 'do' oss ];
+			doing_folder = [self.psychopomp_folder oss 'doing' oss ];
+			done_folder = [self.psychopomp_folder oss 'done' oss ];
+			free_jobs = dir([ do_folder '*.ppp']);
+			running_jobs = dir([ doing_folder '*.ppp']);
+			done_jobs = dir([ done_folder '*.ppp']);
+
+			total_jobs = length(done_jobs) + length(running_jobs) + length(free_jobs);
+
+			if  total_jobs == 0
+            	fprintf('No simulations queued')
+            else
+            	fprintf('Simulation progress:    ') 
+            	fprintf('\n--------------------\n')
+            	fprintf(['Queued :  ' oval(length(free_jobs)) '\n'])
+            	fprintf(['Running:  ' oval(length(running_jobs)) '\n'])
+            	fprintf(['Done   :  ' oval(length(done_jobs)) '\n'])
+
+            end
+
+            if isempty(self.sim_start_time)
+            	fprintf('Simulations have not been started. \n')
+            else
+            	fprintf(['Simulations started on      :' datestr(self.sim_start_time) '\n'])
+            	if length(running_jobs) > 0
+            		elapsed_time = now - self.sim_start_time;
+            		if length(done_jobs) > 0
+            			ldj = length(done_jobs);
+            			rem_jobs = total_jobs - ldj;
+            			time_per_job = elapsed_time/ldj;
+            			time_rem = time_per_job*rem_jobs;
+            			when_done = time_rem + now;
+            			fprintf(['Estimated time of completion: ' datestr(when_done) '\n'])
+
+            			n_sims_per_job = self.n_sims/(self.n_batches*self.num_workers);
+            			T = (n_sims_per_job*self.x.t_end)/1000; % s
+            			dv = datevec(time_per_job);
+            			elapsed_sec = dv(end) + dv(end-1)*60 + dv(end-2)*60*60 + dv(end-3)*60*60*24;
+            			speed = T/elapsed_sec;
+            			fprintf(['Running @ ' oval(speed) 'X\n \n'])
+            		end
+            	end
+            end
+
+
+
+    
+
+        end % end displayScalarObject
+   end % end protected methods
 
 	methods
 
@@ -96,6 +157,8 @@ classdef psychopomp < handle
 			t_end = oval((length(allfiles)*t)/self.num_workers);
 			disp(['Estimated running time is ' t_end 's.'])
 
+			self.sim_start_time = now;
+
 			for i = 1:self.num_workers
 				F(i) = parfeval(@self.simulate_core,0,i,Inf);
 				pause(stagger_time)
@@ -126,8 +189,7 @@ classdef psychopomp < handle
 
 		end
 
-		function data = simulate_core(self,idx,n_runs)
-
+		function simulate_core(self,idx,n_runs)
 
 			while n_runs > 0
 
@@ -138,6 +200,7 @@ classdef psychopomp < handle
 				free_jobs = dir([ do_folder '*.ppp']);
 
 				if length(free_jobs) == 0
+					self.sim_stop_time = now;
 					return
 				end
 
