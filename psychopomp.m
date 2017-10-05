@@ -98,6 +98,26 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 		end
 
+		function stop(self)
+			if isempty(self.workers)
+				disp('Stopping all workers...')
+				cancel(self.workers)
+			end
+
+			% move doing jobs back to queue
+			do_folder = [self.psychopomp_folder oss 'do' oss ];
+			doing_folder = [self.psychopomp_folder oss 'doing' oss ];
+
+			% remove all .ppp files
+			allfiles = dir([doing_folder '*.ppp']);
+			for i = 1:length(allfiles)
+				this_job = allfiles(i).name;
+				movefile([doing_folder this_job],[do_folder this_job])
+			end
+
+
+		end
+
 		function self = set.n_func_outputs(self,value)
 			assert(length(value) == 1, 'n_func_outputs should be a integer')
 			assert(length(value) > 0, 'n_func_outputs should be > 0')
