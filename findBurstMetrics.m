@@ -1,12 +1,13 @@
 % finds the following things:
-% burst period
-% # of spikes / burst
-% time of first spike relative to Ca peak
-% time of last spike relative to Ca peak 
+% (1) burst period
+% (2) # of spikes / burst
+% (3) time of first spike relative to Ca peak
+% (4) time of last spike relative to Ca peak 
+% (5) height of calcium peak
 
 function [burst_metrics] = findBurstMetrics(V,Ca)
 
-burst_metrics = -ones(4,1);
+burst_metrics = -ones(5,1);
 
 
 
@@ -83,4 +84,5 @@ burst_metrics(1) = burst_dur;
 burst_metrics(2) = mean(n_spikes(2:end));
 burst_metrics(3) = mean(first_spike_loc(2:end));
 burst_metrics(4) = mean(last_spike_loc(2:end));
+burst_metrics(5) = mean(peak_Ca(2:end));
 

@@ -96,10 +96,24 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			self.num_workers = self.current_pool.NumWorkers;
 			self.psychopomp_folder = fileparts(which(mfilename));
 
+			% create do, doing, done folders if they don't exist
+			if exist(joinPath(self.psychopomp_folder,'do'),'file') == 7
+			else
+				mkdir(joinPath(self.psychopomp_folder,'do'))
+			end
+			if exist(joinPath(self.psychopomp_folder,'doing'),'file') == 7
+			else
+				mkdir(joinPath(self.psychopomp_folder,'doing'))
+			end
+			if exist(joinPath(self.psychopomp_folder,'done'),'file') == 7
+			else
+				mkdir(joinPath(self.psychopomp_folder,'done'))
+			end
+
 		end
 
 		function stop(self)
-			if isempty(self.workers)
+			if ~isempty(self.workers)
 				disp('Stopping all workers...')
 				cancel(self.workers)
 			end
