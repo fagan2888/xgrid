@@ -187,14 +187,18 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			job_time = ceil(self.n_sims/(self.num_workers*self.n_batches))*t;
 			stagger_time = job_time/(self.num_workers+1);
 
+
 			% report estimated completion time
-			t_end = oval((length(allfiles)*t)/self.num_workers);
+			t_end = oval((length(allfiles)*job_time)/self.num_workers);
 			disp(['Estimated running time is ' t_end 's.'])
 
 			self.sim_start_time = now;
 
+			disp('Starting workers...')
+
 			for i = 1:self.num_workers
 				F(i) = parfeval(@self.simulate_core,0,i,Inf);
+				textbar(i,self.num_workers)
 				pause(stagger_time)
 			end
 			self.workers = F;
