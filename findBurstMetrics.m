@@ -1,3 +1,12 @@
+%                          _                                       
+%                         | |                                      
+%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __  
+%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \ 
+%    | |_) \__ \ |_| | (__| | | | (_) | |_) | (_) | | | | | | |_) |
+%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/ 
+%    | |         __/ |                | |                   | |    
+%    |_|        |___/                 |_|                   |_|
+% 
 % finds the following things:
 % (1) burst period
 % (2) # of spikes / burst
@@ -5,7 +14,7 @@
 % (4) time of last spike relative to Ca peak 
 % (5) height of calcium peak
 
-function [burst_metrics] = findBurstMetrics(V,Ca)
+function [burst_metrics] = findBurstMetrics(V,Ca,~,~,~,~)
 
 burst_metrics = -ones(5,1);
 

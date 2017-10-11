@@ -1,4 +1,13 @@
 % psychopomp
+%                          _                                       
+%                         | |                                      
+%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __  
+%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \ 
+%    | |_) \__ \ |_| | (__| | | | (_) | |_) | (_) | | | | | | |_) |
+%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/ 
+%    | |         __/ |                | |                   | |    
+%    |_|        |___/                 |_|                   |_|
+%     
 % a MATLAB class to run parameter scans of neuron models
 % runs using xolotl (https://github.com/sg-s/xolotl)
 % needs the parallel computing toolbox 
@@ -12,6 +21,8 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		n_func_outputs
 		n_batches = 10; % per worker
 		data_size
+		transient_length@double % in ms
+		verbosity = 1;
 	end % end props
 
 	properties (SetAccess = protected)
@@ -162,13 +173,47 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			assert(length(value)==1,'Only one xololt object can be linked')
 			self.x = value;
 			% determine the parameter names we expect 
-			n = getCompartmentNames(self.x);
+			n = self.x.compartment_names;
 			for i = 1:length(n)
 				eval([n{i} ' = self.x.(n{i});']);
 				eval( ['[~,these_names] = struct2vec(' n{i} ');']);
 				self.allowed_param_names = [self.allowed_param_names; these_names];
 			end
+			self.x.closed_loop = false; 
 		end % end set xolotl object
+
+
+		function [all_data, all_params] = gather(self)
+			% make sure nothing is running
+			% read all files form done/
+			do_folder = [self.psychopomp_folder oss 'do' oss ];
+			allfiles = dir([do_folder '*.ppp']);
+			assert(length(allfiles) == 0,'At least one job is still queued')
+			doing_folder = [self.psychopomp_folder oss 'doing' oss ];
+			allfiles = dir([doing_folder '*.ppp']);
+			assert(length(allfiles) == 0,'At least one job is still running')
+
+			done_folder = [self.psychopomp_folder oss 'done' oss ];
+			job_files =  dir([done_folder '*.ppp']);
+			data_files =  dir([done_folder '*.ppp.data']);
+			assert(length(job_files) == length(data_files),'# of data files does not match # of job files')
+
+			load([done_folder data_files(1).name],'-mat');
+			all_data = data;
+			load([done_folder job_files(1).name],'-mat');
+			all_params = this_params;
+
+			for i = 2:length(data_files)
+				load([done_folder data_files(i).name],'-mat');
+				load([done_folder job_files(i).name],'-mat');
+
+				for j = 1:length(all_data)
+					all_data{j} = [all_data{j} data{j}];
+				end
+
+				all_params = [all_params this_params];
+			end
+		end
 
 		function simulate(self)
 
@@ -193,11 +238,15 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 			% report estimated completion time
 			t_end = oval((length(allfiles)*job_time)/self.num_workers);
-			disp(['Estimated running time is ' t_end 's.'])
+			if self.verbosity
+				disp(['Estimated running time is ' t_end 's.'])
+			end
 
 			self.sim_start_time = now;
 
-			disp('Starting workers...')
+			if self.verbosity
+				disp('Starting workers...')
+			end
 
 			for i = 1:self.num_workers
 				F(i) = parfeval(@self.simulate_core,0,i,Inf);
@@ -228,6 +277,11 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				delete(joinPath(allfiles(i).folder,allfiles(i).name))
 			end
 
+			allfiles = dir([done_folder '*.ppp.data']);
+			for i = 1:length(allfiles)
+				delete(joinPath(allfiles(i).folder,allfiles(i).name))
+			end
+
 		end
 
 		function simulate_core(self,idx,n_runs)
@@ -241,7 +295,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				free_jobs = dir([ do_folder '*.ppp']);
 
 				if length(free_jobs) == 0
-					self.sim_stop_time = now;
 					return
 				end
 
@@ -273,11 +326,18 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 					% run the model
 					try
-						[V,Ca] = self.x.integrate;
+						[V,Ca,I_clamp,cond_states,syn_states,cont_states] = self.x.integrate;
+
+						% throw away the transient 
+						if ~isempty(self.transient_length)
+							a = self.transient_length/self.x.dt;
+						else
+							a = 1;
+						end
 
 						% call the post-stim functions
 						for j = 1:length(self.post_sim_func)
-							data{j}(:,i) = self.post_sim_func{j}(V,Ca);
+							data{j}(:,i) = self.post_sim_func{j}(V(a:end,:),Ca(a:end,:),I_clamp(a:end,:),cond_states(a:end,:),syn_states(a:end,:),cont_states(a:end,:));
 						end 
 					catch
 					end
@@ -301,6 +361,20 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 	end % end methods 
 
 	methods (Static)
+
+		function syn_state = getSynapseState(V,Ca,I_clamp,cond_states,syn_states,cont_states)
+			syn_state = syn_states(end,:);
+		end
+
+
+		function cond_state = getConductanceState(V,Ca,I_clamp,cond_states,syn_states,cont_states)
+			cond_state = cond_states(end,:);
+		end
+
+		function cont_state = getControllerState(V,Ca,I_clamp,cond_states,syn_states,cont_states)
+			cont_state = cont_states(end,:);
+		end
+
 		function spiketimes = findSpikes(V)
 			[ons, offs] = computeOnsOffs(V>0);
 			spiketimes = NaN*ons;
@@ -309,8 +383,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				spiketimes(i) = ons(i) + idx;
 			end
 		end
-
-		 
 	end % end static methods
 
 end % end classdef 
