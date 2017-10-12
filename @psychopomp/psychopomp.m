@@ -71,7 +71,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             if isempty(self.sim_start_time)
             	fprintf('Simulations have not been started. \n')
             else
-            	fprintf(['Simulations started on      :' datestr(self.sim_start_time) '\n'])
+            	fprintf(['Simulations started on      : ' datestr(self.sim_start_time) '\n'])
             	if length(running_jobs) > 0
             		elapsed_time = now - self.sim_start_time;
             		if length(done_jobs) > 0
@@ -91,11 +91,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             		end
             	end
             end
-
-
-
-    
-
         end % end displayScalarObject
    end % end protected methods
 
@@ -133,7 +128,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			do_folder = [self.psychopomp_folder oss 'do' oss ];
 			doing_folder = [self.psychopomp_folder oss 'doing' oss ];
 
-			% remove all .ppp files
 			allfiles = dir([doing_folder '*.ppp']);
 			for i = 1:length(allfiles)
 				this_job = allfiles(i).name;
@@ -326,18 +320,11 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 					% run the model
 					try
-						[V,Ca,I_clamp,cond_states,syn_states,cont_states] = self.x.integrate;
-
-						% throw away the transient 
-						if ~isempty(self.transient_length)
-							a = self.transient_length/self.x.dt;
-						else
-							a = 1;
-						end
+						[outputs{1:6}] = self.x.integrate;
 
 						% call the post-stim functions
 						for j = 1:length(self.post_sim_func)
-							data{j}(:,i) = self.post_sim_func{j}(V(a:end,:),Ca(a:end,:),I_clamp(a:end,:),cond_states(a:end,:),syn_states(a:end,:),cont_states(a:end,:));
+							data{j}(:,i) = self.post_sim_func{j}(outputs{:});
 						end 
 					catch
 					end

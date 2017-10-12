@@ -14,14 +14,23 @@
 % (4) time of last spike relative to Ca peak 
 % (5) height of calcium peak
 
-function [burst_metrics] = findBurstMetrics(V,Ca,~,~,~,~)
+function [burst_metrics] = findBurstMetrics(self,V,Ca,~,~,~,~)
 
 burst_metrics = -ones(5,1);
 
 
+% throw away the transient 
+if ~isempty(self.transient_length)
+	a = self.transient_length/self.x.dt;
+else
+	a = 1;
+end
 
-Ca = Ca(:,1);
-V = V(:,1);
+% to do -- make this work for more than one compartment 
+
+V = V(a:end,1);
+Ca = Ca(a:end,1);
+
 
 Ca_prom = std(Ca);
 [peak_Ca,burst_peak_loc] = findpeaks(Ca,'MinPeakProminence',Ca_prom);
