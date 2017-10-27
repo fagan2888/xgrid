@@ -30,6 +30,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		num_workers
 		workers
 		n_sims
+		xolotl_hash
 	end
 
 	properties (Access = protected)
@@ -46,7 +47,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             if isempty(self.x)
             	fprintf(['Xolotl has not been configured \n \n'])
             else
-            	fprintf(['Xolotl has been configured, with hash: ' self.x.hash '\n \n'])
+            	fprintf(['Xolotl has been configured, with hash: ' self.xolotl_hash '\n \n'])
             end
 			do_folder = [self.psychopomp_folder oss 'do' oss ];
 			doing_folder = [self.psychopomp_folder oss 'doing' oss ];
@@ -148,7 +149,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			n_sims = size(params,2);
 			self.n_sims = n_sims;
 			assert(size(params,1) == length(param_names),'Param names does not match parameter dimensions')
-			xhash = self.x.hash;
+			xhash = self.xolotl_hash;
 			n_jobs = self.num_workers*self.n_batches;
 			job_size = ceil(n_sims/n_jobs);
 			idx = 1; c = 1;
@@ -174,6 +175,9 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				self.allowed_param_names = [self.allowed_param_names; these_names];
 			end
 			self.x.closed_loop = false; 
+			self.x.skip_hash_check = false;
+			self.xolotl_hash = self.x.hash;
+			self.x.skip_hash_check = true;
 		end % end set xolotl object
 
 
@@ -216,7 +220,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			allfiles = dir([do_folder '*.ppp']);
 			for i = 1:length(allfiles)
 				m = matfile(joinPath(allfiles(i).folder,allfiles(i).name));
-				assert(strcmp(self.x.hash,m.xhash),'At least one job didnt match the hash of the currently configured Xolotl object')
+				assert(strcmp(self.xolotl_hash,m.xhash),'At least one job didnt match the hash of the currently configured Xolotl object')
 			end
 
 
