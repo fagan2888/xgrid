@@ -1,5 +1,6 @@
 # psychopomp
 
+[![GitHub last commit](https://img.shields.io/github/last-commit/sg-s/psychopomp.svg)]()
 
 ## What it is
 
