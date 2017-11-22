@@ -201,7 +201,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			load([done_folder job_files(1).name],'-mat');
 			all_params = this_params;
 
-			for i = 2:length(data_files)
+			for i = 2:length(data_files) % because we've already loaded the first one (see above)
 				load([done_folder data_files(i).name],'-mat');
 				load([done_folder job_files(i).name],'-mat');
 
@@ -312,7 +312,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				load([doing_folder this_job],'-mat')
 
 				% make data placeholders
-				for i = 1:length(self.data_size)
+				for i = 1:length(self.post_sim_func)
 					data{i} = NaN(self.data_size(i),size(this_params,2));
 				end
 				
