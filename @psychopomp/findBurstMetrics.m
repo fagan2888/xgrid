@@ -14,53 +14,47 @@
 % (4) time of last spike relative to Ca peak 
 % (5) height of calcium peak
 
-function [burst_metrics] = findBurstMetrics(self,V,Ca,~,~,~,~)
+function burst_metrics = findBurstMetrics(V,Ca,Ca_peak_similarity, burst_duration_variability)
+
+if nargin < 3
+	Ca_peak_similarity = .3;
+end
+if nargin < 4
+	burst_duration_variability = .1;
+end
 
 burst_metrics = -ones(5,1);
 
 
-% throw away the transient 
-if ~isempty(self.transient_length)
-	a = self.transient_length/self.x.dt;
-else
-	a = 1;
-end
-
-% to do -- make this work for more than one compartment 
-
-V = V(a:end,1);
-Ca = Ca(a:end,1);
-
-
 Ca_prom = std(Ca);
 [peak_Ca,burst_peak_loc] = findpeaks(Ca,'MinPeakProminence',Ca_prom);
-% skip the firrst one
 
-% there should be at least three (we skip the first one)
+
+% there should be at least three
 if length(peak_Ca)<3
-	%disp('Less than three peaks')
+	disp('Less than three peaks')
 	return
 end
 
-% check for similarity of peak heighrs 
-if std(peak_Ca(2:end))/(mean(peak_Ca(2:end))) > .2
-	%disp('Calcium peaks not similar enough')
-	%disp(std(peak_Ca(2:end))/(mean(peak_Ca(2:end))))
+% check for similarity of peak heights 
+if std(peak_Ca)/(mean(peak_Ca)) > Ca_peak_similarity
+	disp('Calcium peaks not similar enough')
+	disp(std(peak_Ca)/(mean(peak_Ca)))
 	return
 end
 
-burst_durations = diff(burst_peak_loc(2:end));
+burst_durations = diff(burst_peak_loc);
 
-if std(burst_durations)/mean(burst_durations) > 0.1
-	%disp('Burst durations too variable')
-	%disp(std(burst_durations)/mean(burst_durations))
+if std(burst_durations)/mean(burst_durations) > burst_duration_variability
+	disp('Burst durations too variable')
+	disp(std(burst_durations)/mean(burst_durations))
 	return
 end
 
 burst_dur = mean(burst_durations);
 
 % find spikes
-s = psychopomp.findSpikes(V);
+s = psychopomp.findNSpikes(V,1000);
 
 n_spikes = 0*burst_peak_loc;
 first_spike_loc = 0*burst_peak_loc;
@@ -99,8 +93,8 @@ end
 
 
 burst_metrics(1) = burst_dur;
-burst_metrics(2) = mean(n_spikes(2:end));
-burst_metrics(3) = mean(first_spike_loc(2:end));
-burst_metrics(4) = mean(last_spike_loc(2:end));
-burst_metrics(5) = mean(peak_Ca(2:end));
+burst_metrics(2) = mean(n_spikes);
+burst_metrics(3) = mean(first_spike_loc);
+burst_metrics(4) = mean(last_spike_loc);
+burst_metrics(5) = mean(peak_Ca);
 

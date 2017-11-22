@@ -15,13 +15,12 @@
 classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 	properties
-		current_pool@parallel.Pool
 		x@xolotl
-		post_sim_func
-		n_func_outputs
-		n_batches = 10; % per worker
-		data_size
-		transient_length@double % in ms
+		sim_func@function_handle
+		n_func_outputs % how many outputs will the simulation function generate? 
+		use_parallel = true
+		n_batches = 10 % per worker
+		data_sizes
 		verbosity = 1;
 	end % end props
 
@@ -31,6 +30,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		workers
 		n_sims
 		xolotl_hash
+		current_pool@parallel.Pool
 	end
 
 	properties (Access = protected)
@@ -138,12 +138,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 		end
 
-		function self = set.n_func_outputs(self,value)
-			assert(length(value) == 1, 'n_func_outputs should be a integer')
-			assert(length(value) > 0, 'n_func_outputs should be > 0')
-			self.n_func_outputs = value;
-		end % end set n_func_outputs 
-
 		function batchify(self,params,param_names)
 			assert(~isempty(self.x),'First configure the xolotl object')
 			n_sims = size(params,2);
@@ -153,13 +147,16 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			n_jobs = self.num_workers*self.n_batches;
 			job_size = ceil(n_sims/n_jobs);
 			idx = 1; c = 1;
+
 			while idx < n_sims
 				z = idx+job_size;
 				if z > n_sims
 					z = n_sims;
 				end
+				param_idx = 1:n_sims;
+				param_idx = param_idx(idx:z);
 				this_params = params(:,idx:z);
-				save([self.psychopomp_folder oss 'do' oss 'job_' oval(c) '.ppp'],'this_params','param_names','xhash');
+				save([self.psychopomp_folder oss 'do' oss 'job_' oval(c) '.ppp'],'this_params','param_names','xhash','param_idx');
 				idx = z + 1; c = c + 1;
 			end
 		end
@@ -181,9 +178,9 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		end % end set xolotl object
 
 
-		function [all_data, all_params] = gather(self)
+		function [all_data, all_params, all_param_idx] = gather(self)
 			% make sure nothing is running
-			% read all files form done/
+			% read all files from done/
 			do_folder = [self.psychopomp_folder oss 'do' oss ];
 			allfiles = dir([do_folder '*.ppp']);
 			assert(length(allfiles) == 0,'At least one job is still queued')
@@ -200,6 +197,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			all_data = data;
 			load([done_folder job_files(1).name],'-mat');
 			all_params = this_params;
+			all_param_idx = param_idx;
 
 			for i = 2:length(data_files) % because we've already loaded the first one (see above)
 				load([done_folder data_files(i).name],'-mat');
@@ -210,6 +208,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				end
 
 				all_params = [all_params this_params];
+				all_param_idx = [all_param_idx param_idx];
 			end
 		end
 
@@ -312,9 +311,10 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				load([doing_folder this_job],'-mat')
 
 				% make data placeholders
-				for i = 1:length(self.post_sim_func)
-					data{i} = NaN(self.data_size(i),size(this_params,2));
+				for i = 1:length(self.data_sizes)
+					data{i} = NaN(self.data_sizes(i),size(this_params,2));
 				end
+
 				
 				for i = 1:size(this_params,2)
 					% update params
@@ -324,12 +324,11 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 					% run the model
 					try
-						[outputs{1:6}] = self.x.integrate;
-
-						% call the post-stim functions
-						for j = 1:length(self.post_sim_func)
-							data{j}(:,i) = self.post_sim_func{j}(outputs{:});
-						end 
+						[outputs{1:length(self.data_sizes)}] = self.sim_func(self.x);
+						% map the outputs to the data structures
+						for j = 1:length(data)
+							data{j}(:,i) = outputs{j};
+						end
 					catch
 					end
 
@@ -366,14 +365,10 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			cont_state = cont_states(end,:);
 		end
 
-		function spiketimes = findSpikes(V)
-			[ons, offs] = computeOnsOffs(V>0);
-			spiketimes = NaN*ons;
-			for i = 1:length(ons)
-				[~,idx] = max(V(ons(i):offs(i)));
-				spiketimes(i) = ons(i) + idx;
-			end
-		end
+		burst_metrics = findBurstMetrics(V,Ca,varargin)
+		spiketimes = findNSpikes(V,n_spikes)
+
+
 	end % end static methods
 
 end % end classdef 

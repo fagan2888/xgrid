@@ -1,4 +1,3 @@
-% psychopomp
 %                          _                                       
 %                         | |                                      
 %     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __  
@@ -8,25 +7,20 @@
 %    | |         __/ |                | |                   | |    
 %    |_|        |___/                 |_|                   |_|
 % 
-function [sp] = storeSpikes(self,V,Ca,~,~,~,~,~,~)
+% this helper static method figures out spike times 
+% (in units of simulation time step) and returns them
+% only works with one compartment
+% 
+function spiketimes = findNSpikes(V,n_spikes)
 
-% stores spiketimes in a 1000-element vector
-
-% throw away the transient 
-if ~isempty(self.transient_length)
-	a = self.transient_length/self.x.dt;
-else
-	a = 1;
+spiketimes = NaN(n_spikes,1);
+[ons, offs] = computeOnsOffs(V > 0);
+stop_here = min([length(ons) n_spikes]);
+if stop_here == 0
+	return
+end
+for j = 1:stop_here
+	[~,idx] = max(V(ons(j):offs(j)));
+	spiketimes(j) = ons(j) + idx;
 end
 
-V = V(a:end,:);
-
-% to do -- make this work for multiple compartments
-
-% to do -- don't hard wire the number of spikes to store, but read it from the data dimensions stored in the pyschopomp object
-
-sp = zeros(1e3,1);
-s = psychopomp.findSpikes(V);
-if length(s) < 1e3
-	sp(1:length(s)) = s;
-end
