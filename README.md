@@ -22,17 +22,21 @@ Set up a `xolotl` object (see instructions [here](https://github.com/sg-s/xolotl
 p.x = x; % x is a xolotl object
 ```
 
-Configure some functions to run on the output of the simulation. There's no point running all these simulations if you aren't also simultaneously analyzing the data and reducing it -- storing the raw output of the simulations is going to be indefeasibly large. 
+Now, you can write an arbitrarily complex function that does **something** with the `xolotl` object, and returns `N` outputs. The only requirements for this function are:
+
+1. it must exist on your path (duh)
+2. it can only return vectors
+3. it must have exactly one input, which is a xolotl object
+
+Typically, you would want to write a function that integrates the xolotl object, and reduces the time-series output of the model into some metrics, that will then be returned to `psychopomp`. 
+
+Once you have this function, configure `psychopomp` to use this function:
 
 ```
-p.post_sim_func = {@findBurstMetrics, @storeSpikes};
+p.sim_func = @test_func;
+p.data_sizes =  [1,1,100];
 ```
 
-Tell `psychopomp` about the size of the data storage matrices that these functions produce, so that `psychopomp` can allocate in advance.
-
-```
-p.data_size = [4, 1e3];
-```
 
 Feed a giant matrix of parameters, with labels to `psychopomp`. `psychopomp` will split these into a number of job files that live on the filesystem, and can be transparently manipulated. 
 
@@ -65,6 +69,10 @@ Running @ 199X
 
 ```
 
+## Example Usage
+
+See [test.md](test.md)
+
 ## How to get it
 
 The best way to get `psychopomp` is to use my package manager:
@@ -77,8 +85,6 @@ install sg-s/srinivas.gs_mtools % you'll need this
 install sg-s/xolotl % the actual simulation code
 install sg-s/psychopomp
 ```
-
-
 
 ## License 
 
