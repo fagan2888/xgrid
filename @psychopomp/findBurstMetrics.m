@@ -18,7 +18,7 @@
 % (8) variability of burst periods (CV)
 % (9) duty cycle 
 
-function varargout = findBurstMetrics(V,Ca,Ca_peak_similarity, burst_duration_variability)
+function burst_metrics = findBurstMetrics(V,Ca,Ca_peak_similarity, burst_duration_variability)
 
 if nargin < 3
 	Ca_peak_similarity = .3;
@@ -130,7 +130,7 @@ for i = 2:length(burst_peak_loc-1)
 		first_spike_loc(i) = spikes_in_this_burst(1) - burst_peak_loc(i);
 		last_spike_loc(i) =  spikes_in_this_burst(end) - burst_peak_loc(i);
 
-		duty_cycle(i) = z - a;
+		duty_cycle(i) = spikes_in_this_burst(end) - spikes_in_this_burst(1);
 
 	end
 
@@ -145,10 +145,15 @@ burst_metrics(4) = mean(last_spike_loc(2:end-1));
 burst_metrics(5) = mean(peak_Ca(2:end-1));
 burst_metrics(6) = mean(cal_min(2:end-1));
 
+
 burst_metrics(9) = mean(duty_cycle(2:end-1))/mean_burst_period;
 
 
-if nargout == 1
-	varargout{1} = burst_metrics;
+if nargout == 0
+	fprintf('Burst metrics:\n')
+	fprintf('--------------\n')
+	fprintf(['Burst period:       '  oval(burst_metrics(1)) '\n'])
+	fprintf(['# spikes/burst:     '  oval(burst_metrics(2)) '\n'])
+	fprintf(['Duty Cycle:         '  oval(burst_metrics(9),3) '\n'])
 end
 
