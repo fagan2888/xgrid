@@ -7,14 +7,18 @@
 %    | |         __/ |                | |                   | |    
 %    |_|        |___/                 |_|                   |_|
 % 
-% finds the following things:
-% (1) burst period
+% findBurstMetrics finds the following things:
+% (1) burst period (in units of dt)
 % (2) # of spikes / burst
-% (3) time of first spike relative to Ca peak
-% (4) time of last spike relative to Ca peak 
-% (5) height of calcium peak
+% (3) time of first spike relative to Ca peak (in units of dt)
+% (4) time of last spike relative to Ca peak (in units of dt)
+% (5) mean height of calcium peak (uM)
+% (6) mean minimum of Calcium minimum (uM) 
+% (7) variability of Calcium peaks (CV)
+% (8) variability of burst periods (CV)
+% (9) duty cycle 
 
-function burst_metrics = findBurstMetrics(V,Ca,Ca_peak_similarity, burst_duration_variability)
+function varargout = findBurstMetrics(V,Ca,Ca_peak_similarity, burst_duration_variability)
 
 if nargin < 3
 	Ca_peak_similarity = .3;
@@ -23,7 +27,7 @@ if nargin < 4
 	burst_duration_variability = .1;
 end
 
-burst_metrics = -ones(5,1);
+burst_metrics = -ones(9,1);
 
 
 Ca_prom = std(Ca);
@@ -31,42 +35,66 @@ Ca_prom = std(Ca);
 
 
 % there should be at least three
-if length(peak_Ca)<3
-	disp('Less than three peaks')
+if length(peak_Ca) < 5
+	%disp('Less than three peaks')
 	return
 end
 
 % check for similarity of peak heights 
-if std(peak_Ca)/(mean(peak_Ca)) > Ca_peak_similarity
-	disp('Calcium peaks not similar enough')
-	disp(std(peak_Ca)/(mean(peak_Ca)))
+cv_peak_Ca = std(peak_Ca)/(mean(peak_Ca));
+if  cv_peak_Ca > Ca_peak_similarity
+	%disp('Calcium peaks not similar enough')
+	%disp(std(peak_Ca)/(mean(peak_Ca)))
+	burst_metrics(7) = cv_peak_Ca;
 	return
 end
 
-burst_durations = diff(burst_peak_loc);
-
-if std(burst_durations)/mean(burst_durations) > burst_duration_variability
-	disp('Burst durations too variable')
-	disp(std(burst_durations)/mean(burst_durations))
+burst_periods = diff(burst_peak_loc);
+cv_burst_periods = std(burst_periods)/mean(burst_periods);
+if cv_burst_periods > burst_duration_variability
+	% disp('Burst durations too variable')
+	% disp(std(burst_periods)/mean(burst_periods))
+	burst_metrics(8) = cv_burst_periods;
 	return
 end
 
-burst_dur = mean(burst_durations);
+mean_burst_period = mean(burst_periods);
 
 % find spikes
-s = psychopomp.findNSpikes(V,1000);
+s = nonnans(psychopomp.findNSpikes(V,1000));
 
-n_spikes = 0*burst_peak_loc;
-first_spike_loc = 0*burst_peak_loc;
-last_spike_loc = 0*burst_peak_loc;
+n_spikes = NaN*burst_peak_loc;
+first_spike_loc = NaN*burst_peak_loc;
+last_spike_loc = NaN*burst_peak_loc;
+duty_cycle = NaN*burst_peak_loc;
+cal_min = NaN*burst_peak_loc;
+
+
+if nargout == 0
+
+	figure, hold on
+	time = 1:length(V);
+	plot(time,V,'k')
+end
 
 % for each burst, look around that peak and count spikes
-for i = 2:length(burst_peak_loc)
-	% find calcium minimum before current burst and previous burst
+% we skip the first and last Calcium maxima
+% so that we are guaranteed to have something on either side
+for i = 2:length(burst_peak_loc-1)
 
+
+	% we consider spikes to belong the current calcium peak if they 
+	% occur after a and before z
+	% where a is the half-way point b/w the previous Ca max 
+	% and the preceding Ca minimum, and where 
+	% z is the half-way point b/w the current Ca max and the next Ca minimum 
+
+	% find the preceding calcium minimum
 	[~,idx] = min(Ca(burst_peak_loc(i-1):burst_peak_loc(i)));
+	prev_ca_min = idx + burst_peak_loc(i-1);
+	cal_min(i) = prev_ca_min;
+	a = floor((burst_peak_loc(i-1) + prev_ca_min)/2);
 
-	a = idx + burst_peak_loc(i-1);
 
 	% find calcium minimum after current peak
 	if i == length(burst_peak_loc)
@@ -74,11 +102,26 @@ for i = 2:length(burst_peak_loc)
 	else
 		[~,idx] = min(Ca(burst_peak_loc(i):burst_peak_loc(i+1)));
 	end
-	z = idx + burst_peak_loc(i);
-	% find spikes in this interval
+	next_ca_min = idx + burst_peak_loc(i);
+	z = floor((burst_peak_loc(i) + next_ca_min)/2);
 
-	% first position of first spike
+	
+
+	% find spikes in this interval
 	spikes_in_this_burst = s(s<z&s>a);
+
+	if nargout == 0
+
+		scatter(time(a),V(a),'ko')
+		scatter(time(z),V(z),'gx')
+		scatter(time(spikes_in_this_burst),V(spikes_in_this_burst),'ro')
+
+		y = [max(V) + 10, max(V) + 10];
+		x = [spikes_in_this_burst(1) spikes_in_this_burst(end)];
+		plot(x,y,'r','LineWidth',5)
+
+	end
+
 
 	n_spikes(i) = length(spikes_in_this_burst);
 
@@ -86,15 +129,26 @@ for i = 2:length(burst_peak_loc)
 
 		first_spike_loc(i) = spikes_in_this_burst(1) - burst_peak_loc(i);
 		last_spike_loc(i) =  spikes_in_this_burst(end) - burst_peak_loc(i);
+
+		duty_cycle(i) = z - a;
+
 	end
 
 
 end
 
 
-burst_metrics(1) = burst_dur;
-burst_metrics(2) = mean(n_spikes);
-burst_metrics(3) = mean(first_spike_loc);
-burst_metrics(4) = mean(last_spike_loc);
-burst_metrics(5) = mean(peak_Ca);
+burst_metrics(1) = mean_burst_period;
+burst_metrics(2) = mean(n_spikes(2:end-1));
+burst_metrics(3) = mean(first_spike_loc(2:end-1));
+burst_metrics(4) = mean(last_spike_loc(2:end-1));
+burst_metrics(5) = mean(peak_Ca(2:end-1));
+burst_metrics(6) = mean(cal_min(2:end-1));
+
+burst_metrics(9) = mean(duty_cycle(2:end-1))/mean_burst_period;
+
+
+if nargout == 1
+	varargout{1} = burst_metrics;
+end
 
