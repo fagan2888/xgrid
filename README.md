@@ -71,7 +71,7 @@ Running @ 199X
 
 ## Example Usage
 
-See [test.md](test.md)
+See [tests/](tests/test.m)
 
 ## How to get it
 
