@@ -177,6 +177,11 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			self.x.skip_hash_check = true;
 		end % end set xolotl object
 
+		% function self = set.sim_func(self,value)
+		% 	% make sure it exists 
+		% 	% TO DO
+		% end % end set sim_func
+
 
 		function [all_data, all_params, all_param_idx] = gather(self)
 			% make sure nothing is running
@@ -212,7 +217,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			end
 		end
 
-		function simulate(self)
+		function simulate(self, stagger_time)
 
 			% check that every job has the correct hash
 			do_folder = [self.psychopomp_folder oss 'do' oss ];
@@ -222,22 +227,29 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				assert(strcmp(self.xolotl_hash,m.xhash),'At least one job didnt match the hash of the currently configured Xolotl object')
 			end
 
+			% make sure that the number of data_sizes matches the number of outputs in sim_func
+			% to do
+
 
 			% first run one sim, and time it 
-			tic; self.x.integrate; self.x.integrate; t = toc;
-			t = t/2;
-			job_time = ceil(self.n_sims/(self.num_workers*self.n_batches))*t;
-			stagger_time = job_time/(self.num_workers+1);
+			if nargin < 2
+				try
+					tic
+					self.sim_func(self.x);
+					t = toc;
+					t = t/2;
+				catch
+					error('Attempted to run simulation function and encountered an error. Check your function and make sure it works.')
+				end
 
-			if stagger_time > 1
-				stagger_time = 1;
+				job_time = ceil(self.n_sims/(self.num_workers*self.n_batches))*t;
+				stagger_time = job_time/(self.num_workers+1);
+
+				if stagger_time > 1
+					stagger_time = 1;
+				end
 			end
 
-			% report estimated completion time
-			t_end = oval((length(allfiles)*job_time)/self.num_workers);
-			if self.verbosity
-				disp(['Estimated running time is ' t_end 's.'])
-			end
 
 			self.sim_start_time = now;
 
@@ -319,7 +331,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				for i = 1:size(this_params,2)
 					% update params
 					for j = 1:length(param_names)
-						eval(['self.x.' strrep(param_names{j},'_','.') ' = this_params(' mat2str(j),',' mat2str(i) ');'])
+						eval(['self.x.' param_names{j} ' = this_params(' mat2str(j),',' mat2str(i) ');'])
 					end
 
 					% run the model
