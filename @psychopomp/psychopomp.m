@@ -41,7 +41,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 	methods (Access = protected)
         function displayScalarObject(self)
-            url = 'https://gitlab.com/psychopomp/';
+            url = 'https://github.com/sg-s/psychopomp/';
             nc = feature('numcores');
             fprintf(['<a href="' url '">psychopomp</a> is using ' oval(self.num_workers) '/' oval(2*nc) ' threads on ' getComputerName '\n']);
             if isempty(self.x)
@@ -245,9 +245,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				job_time = ceil(self.n_sims/(self.num_workers*self.n_batches))*t;
 				stagger_time = job_time/(self.num_workers+1);
 
-				if stagger_time > 1
-					stagger_time = 1;
-				end
 			end
 
 
@@ -330,18 +327,25 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				
 				for i = 1:size(this_params,2)
 					% update params
+
 					for j = 1:length(param_names)
 						eval(['self.x.' param_names{j} ' = this_params(' mat2str(j),',' mat2str(i) ');'])
 					end
 
 					% run the model
+					ok = false;
 					try
 						[outputs{1:length(self.data_sizes)}] = self.sim_func(self.x);
-						% map the outputs to the data structures
+						ok = true;
+					catch
+						warning('Error while running simulation function.')
+					end
+
+					% map the outputs to the data structures
+					if ok
 						for j = 1:length(data)
 							data{j}(:,i) = outputs{j};
 						end
-					catch
 					end
 
 				end
@@ -377,7 +381,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			cont_state = cont_states(end,:);
 		end
 
-		burst_metrics = findBurstMetrics(V,Ca,varargin)
+		[burst_metrics, spike_times, Ca_peaks, Ca_mins] = findBurstMetrics(V,Ca,varargin)
 		spiketimes = findNSpikes(V,n_spikes)
 
 

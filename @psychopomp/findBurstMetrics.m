@@ -7,18 +7,47 @@
 %    | |         __/ |                | |                   | |    
 %    |_|        |___/                 |_|                   |_|
 % 
-% findBurstMetrics finds the following things:
-% (1) burst period (in units of dt)
-% (2) # of spikes / burst
-% (3) time of first spike relative to Ca peak (in units of dt)
-% (4) time of last spike relative to Ca peak (in units of dt)
-% (5) mean height of calcium peak (uM)
-% (6) mean minimum of Calcium minimum (uM) 
-% (7) variability of Calcium peaks (CV)
-% (8) variability of burst periods (CV)
-% (9) duty cycle 
+% Explanation of outputs
+% ======================
+% 
+% findBurstMetrics finds the following things, 
+% which are returned in a 10-element vector
+% (1)  burst period (in units of dt)
+% (2)  # of spikes / burst
+% (3)  time of first spike relative to Ca peak (in units of dt)
+% (4)  time of last spike relative to Ca peak (in units of dt)
+% (5)  mean height of calcium peak (uM)
+% (6)  mean minimum of Calcium minimum (uM) 
+% (7)  variability of Calcium peaks (CV)
+% (8)  variability of burst periods (CV)
+% (9)  duty cycle 
+% (10) error code (see below for details)
+%
+% in addition, it returns the time of every spike,
+% the times of the calcium peaks, and the times
+% of the calcium minimums in additional outputs
+%
+% minimal usage:
+% ==============
+%
+% [burst_metrics, spike_times, Ca_peaks, Ca_mins] = findBurstMetrics(V,Ca)
+%
+% note that while burst_metrics is always 10 elements long,
+% the other three outputs can have variable lengths
+%
+% Explanation of error codes
+% ==========================
+% 
+% 0 	No error
+% 1		Fewer than 5 Calcium peaks
+% 2 	Calcium peaks not similar enough
+% 3 	Burst periods too variable 
+% 4 	No spikes
 
-function burst_metrics = findBurstMetrics(V,Ca,Ca_peak_similarity, burst_duration_variability)
+function [burst_metrics, spike_times, Ca_peaks, Ca_mins] = findBurstMetrics(V,Ca,Ca_peak_similarity, burst_duration_variability)
+
+assert(isvector(V),'Voltage trace has to be a vector')
+assert(isvector(Ca),'Calcium trace has to be a vector')
 
 if nargin < 3
 	Ca_peak_similarity = .3;
@@ -27,24 +56,34 @@ if nargin < 4
 	burst_duration_variability = .1;
 end
 
-burst_metrics = -ones(9,1);
-
+burst_metrics = -ones(10,1);
+Ca_peaks = [];
+spike_times = [];
+Ca_mins = [];
 
 Ca_prom = std(Ca);
 [peak_Ca,burst_peak_loc] = findpeaks(Ca,'MinPeakProminence',Ca_prom);
 
+Ca_peaks = burst_peak_loc;
 
-% there should be at least three
+% find spikes
+spike_times = nonnans(psychopomp.findNSpikes(V,1000));
+
+if length(spike_times) == 0
+	burst_metrics(10) = 4;
+	return
+end
+
+% there should be at least 5
 if length(peak_Ca) < 5
-	%disp('Less than three peaks')
+	burst_metrics(10) = 1;
 	return
 end
 
 % check for similarity of peak heights 
 cv_peak_Ca = std(peak_Ca)/(mean(peak_Ca));
 if  cv_peak_Ca > Ca_peak_similarity
-	%disp('Calcium peaks not similar enough')
-	%disp(std(peak_Ca)/(mean(peak_Ca)))
+	burst_metrics(10) = 2;
 	burst_metrics(7) = cv_peak_Ca;
 	return
 end
@@ -52,16 +91,13 @@ end
 burst_periods = diff(burst_peak_loc);
 cv_burst_periods = std(burst_periods)/mean(burst_periods);
 if cv_burst_periods > burst_duration_variability
-	% disp('Burst durations too variable')
-	% disp(std(burst_periods)/mean(burst_periods))
+	burst_metrics(10) = 3;
 	burst_metrics(8) = cv_burst_periods;
 	return
 end
 
 mean_burst_period = mean(burst_periods);
 
-% find spikes
-s = nonnans(psychopomp.findNSpikes(V,1000));
 
 n_spikes = NaN*burst_peak_loc;
 first_spike_loc = NaN*burst_peak_loc;
@@ -76,6 +112,7 @@ if nargout == 0
 	time = 1:length(V);
 	plot(time,V,'k')
 end
+
 
 % for each burst, look around that peak and count spikes
 % we skip the first and last Calcium maxima
@@ -108,7 +145,7 @@ for i = 2:length(burst_peak_loc-1)
 	
 
 	% find spikes in this interval
-	spikes_in_this_burst = s(s<z&s>a);
+	spikes_in_this_burst = spike_times(spike_times < z & spike_times > a);
 
 	if nargout == 0
 
@@ -137,6 +174,7 @@ for i = 2:length(burst_peak_loc-1)
 
 end
 
+Ca_mins = cal_min;
 
 burst_metrics(1) = mean_burst_period;
 burst_metrics(2) = mean(n_spikes(2:end-1));
@@ -148,6 +186,7 @@ burst_metrics(6) = mean(cal_min(2:end-1));
 
 burst_metrics(9) = mean(duty_cycle(2:end-1))/mean_burst_period;
 
+burst_metrics(10) = 0;
 
 if nargout == 0
 	fprintf('Burst metrics:\n')
