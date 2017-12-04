@@ -86,9 +86,38 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             			T = (n_sims_per_job*self.x.t_end)/1000; % s
             			dv = datevec(time_per_job);
             			elapsed_sec = dv(end) + dv(end-1)*60 + dv(end-2)*60*60 + dv(end-3)*60*60*24;
-            			speed = T/elapsed_sec;
-            			fprintf(['Running @ ' oval(speed) 'X\n \n'])
             		end
+            	end
+            end
+
+            % display the state of all the workers
+            if isempty(self.workers)
+            	fprintf('No parallel workers connected.\n')
+            else
+            	fprintf('\nThread ID    State        Error         Output\n')
+            	fprintf('----------------------------------------------\n')
+            	for i = 1:length(self.workers)
+            		s = [];
+            		s = [s mat2str(self.workers(i).ID) '           ' ];
+            		if strcmp(self.workers(i).State,'running')
+            			s = [s 'running...    '];
+            		else
+            			s = [s 'DONE          '];
+            		end
+            		if length(self.workers(i).Error) == 0
+            			s = [s '          '];
+            		else
+            			s = [s 'ERROR!    '];
+            		end
+
+            		d = self.workers(i).Diary;
+            		d = splitlines(d);
+            		if isempty(d{end})
+            			d(end) = [];
+            		end
+            		s = [s d{end}];
+            		s = [s '\n'];
+            		fprintf(s)
             	end
             end
         end % end displayScalarObject
@@ -147,8 +176,9 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			job_size = ceil(n_sims/n_jobs);
 			idx = 1; c = 1;
 
-			while idx < n_sims
-				z = idx+job_size;
+
+			while idx <= n_sims
+				z = idx+job_size-1;
 				if z > n_sims
 					z = n_sims;
 				end
@@ -327,12 +357,13 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 						eval(['self.x.' param_names{j} ' = this_params(' mat2str(j),',' mat2str(i) ');'])
 					end
 
+
 					% run the model
 					ok = false;
 					try
 						[outputs{1:length(argOutNames(self.sim_func))}] = self.sim_func(self.x);
 						ok = true;
-					catch
+					catch err
 						warning('Error while running simulation function.')
 					end
 
@@ -352,6 +383,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 					end
 
 				end
+
 
 				% save the data 
 				save([done_folder this_job '.data'],'data')
