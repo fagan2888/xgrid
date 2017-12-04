@@ -111,11 +111,14 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             		end
 
             		d = self.workers(i).Diary;
-            		d = splitlines(d);
-            		if isempty(d{end})
-            			d(end) = [];
+            		try
+	            		d = splitlines(d);
+	            		if isempty(d{end})
+	            			d(end) = [];
+	            		end
+            			s = [s d{end}];
+            		catch
             		end
-            		s = [s d{end}];
             		s = [s '\n'];
             		fprintf(s)
             	end
