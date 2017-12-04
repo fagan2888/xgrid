@@ -20,7 +20,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		n_func_outputs % how many outputs will the simulation function generate? 
 		use_parallel = true
 		n_batches = 10 % per worker
-		data_sizes
 		verbosity = 1;
 	end % end props
 
@@ -319,10 +318,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				% load the file 
 				load([doing_folder this_job],'-mat')
 
-				% make data placeholders
-				for i = 1:length(self.data_sizes)
-					data{i} = NaN(self.data_sizes(i),size(this_params,2));
-				end
 
 				
 				for i = 1:size(this_params,2)
@@ -335,7 +330,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 					% run the model
 					ok = false;
 					try
-						[outputs{1:length(self.data_sizes)}] = self.sim_func(self.x);
+						[outputs{1:length(argOutNames(self.sim_func))}] = self.sim_func(self.x);
 						ok = true;
 					catch
 						warning('Error while running simulation function.')
@@ -343,6 +338,14 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 					% map the outputs to the data structures
 					if ok
+
+						if ~exist('data','var')
+							% create placeholders
+							for j = 1:length(outputs)
+								data{j} = NaN(size(outputs{j},1),size(this_params,2));
+							end
+						end
+
 						for j = 1:length(data)
 							data{j}(:,i) = outputs{j};
 						end
