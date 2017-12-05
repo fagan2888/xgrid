@@ -30,6 +30,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		n_sims
 		xolotl_hash
 		current_pool@parallel.Pool
+		daemon_handle
 	end
 
 	properties (Access = protected)
@@ -58,7 +59,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			total_jobs = length(done_jobs) + length(running_jobs) + length(free_jobs);
 
 			if  total_jobs == 0
-            	fprintf('No simulations queued')
+            	fprintf('No simulations queued\n')
             else
             	fprintf('Simulation progress:    ') 
             	fprintf('\n--------------------\n')
@@ -132,7 +133,15 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			% get the current pool, and start one if needed
 			self.current_pool = gcp;
 			self.num_workers = self.current_pool.NumWorkers;
-			self.psychopomp_folder = fileparts(which(mfilename));
+			if ispc
+				self.psychopomp_folder = fileparts(which(mfilename));
+			else
+				self.psychopomp_folder = '~/.psychopomp';
+				if exist(self.psychopomp_folder,'file') == 7
+				else
+					mkdir(self.psychopomp_folder)
+				end
+			end
 
 			% create do, doing, done folders if they don't exist
 			if exist(joinPath(self.psychopomp_folder,'do'),'file') == 7
@@ -150,10 +159,51 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 		end
 
+
+		function daemonize(self)
+			% to do -- check if daemon is already running
+			self.daemon_handle = parfeval(@self.psychopompd,0);
+		end
+
+		function psychopompd(self)
+			while 1
+				% delete old log files if any 
+				if exist(joinPath(self.psychopomp_folder,'log.mat'),'file')
+					delete(joinPath(self.psychopomp_folder,'log.mat'))
+				end
+
+				% start logging
+				plog.host_name = strtrim(getComputerName);
+				plog.nthreads = 2*feature('numcores');
+				plog.xolotl_hash = self.xolotl_hash;
+
+				do_folder = [self.psychopomp_folder oss 'do' oss ];
+				doing_folder = [self.psychopomp_folder oss 'doing' oss ];
+				done_folder = [self.psychopomp_folder oss 'done' oss ];
+				free_jobs = dir([ do_folder '*.ppp']);
+				running_jobs = dir([ doing_folder '*.ppp']);
+				done_jobs = dir([ done_folder '*.ppp']);
+				plog.jobs_to_do = length(free_jobs);
+				plog.jobs_doing = length(running_jobs);
+				plog.jobs_done = length(free_jobs);
+				for i = 1:length(self.workers)
+					plog.worker_diary(i) = self.workers(i).Diary;
+				end
+				plog.last_updated = now;
+
+				save(joinPath(self.psychopomp_folder,'log.mat'),'plog')
+				% disp(['Updating log on ' datestr(now)])
+				pause(5)
+			end
+		end
+
 		function stop(self)
 			if ~isempty(self.workers)
 				disp('Stopping all workers...')
-				cancel(self.workers)
+				try
+					cancel(self.workers)
+				catch
+				end
 			end
 
 			% move doing jobs back to queue
@@ -294,6 +344,25 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			self.workers = F;
 		
 		end % end simulate 
+
+		function delete(self)
+			% if jobs are running, refuse to quit
+			do_folder = [self.psychopomp_folder oss 'do' oss ];
+			doing_folder = [self.psychopomp_folder oss 'doing' oss ];
+			free_jobs = dir([ do_folder '*.ppp']);
+			running_jobs = dir([ doing_folder '*.ppp']);
+
+			assert(length(free_jobs) == 0,'Queued jobs exist, refusing to quit')
+			assert(length(running_jobs) == 0,'Jobs currently running, refusing to quit')
+
+
+			% destroy the daemon 
+			if ~isempty(self.daemon_handle)
+				cancel(self.daemon_handle);
+			end
+
+
+		end
 
 
 		function cleanup(self)
