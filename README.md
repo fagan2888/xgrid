@@ -5,9 +5,9 @@
 ## What it is
 
 
-`psychopomp` is a MATLAB toolbox to run [xolotl](https://github.com/sg-s/xolotl) simulations in parallel, using MATLAB's [parallel computing toolbox](https://www.mathworks.com/products/parallel-computing.html). 
+`psychopomp` is a MATLAB toolbox to run [xolotl](https://github.com/sg-s/xolotl) simulations in parallel, using MATLAB's [parallel computing toolbox](https://www.mathworks.com/products/parallel-computing.html), on as many computers you want. `psychopomp` handles all communication to remote nodes over SSH, and you can use it to run simulations on an arbitrary number of nodes without ever leaving the MATLAB prompt on your local machine. 
 
-## How to use it
+## How to use it (one a single machine)
 
 
 Set up a `psychopomp` object:
@@ -25,16 +25,14 @@ p.x = x; % x is a xolotl object
 Now, you can write an arbitrarily complex function that does **something** with the `xolotl` object, and returns `N` outputs. The only requirements for this function are:
 
 1. it must exist on your path (duh)
-2. it can only return vectors
-3. it must have exactly one input, which is a xolotl object
+2. it must have exactly one input, which is a xolotl object
 
-Typically, you would want to write a function that integrates the xolotl object, and reduces the time-series output of the model into some metrics, that will then be returned to `psychopomp`. 
+Typically, you would want to write a function that integrates the `xolotl` object, and reduces the time-series output of the model into some metrics, that will then be returned to `psychopomp`. 
 
 Once you have this function, configure `psychopomp` to use this function:
 
 ```
 p.sim_func = @test_func;
-p.data_sizes =  [1,1,100];
 ```
 
 
@@ -53,23 +51,52 @@ p.simulate;
 Inspect the `psychopomp` object at any time:
 
 ``` 
-p = 
-psychopomp is using 8/8 threads on yggdrasil
+psychopomp 
+is using 12 threads on yggdrasil
+is using 12 threads on midgard
 
-Xolotl has been configured, with hash: 545e69a92e3d2pe5e2b4ef48a8d2e601
+Xolotl has been configured, with hash: 429e229c3511a8f87e7ed16f12296dd8c354408d
  
-Simulation progress:    
---------------------
-Queued :  0
-Running:  1
-Done   :  71
-Simulations started on      :04-Oct-2017 23:21:18
-Estimated time of completion: 04-Oct-2017 23:22:04
-Running @ 199X
+Cluster                   Queued     Running   Done
+---------------------------------------------------
+yggdrasil                 0            12        14
+midgard                   0            4         24
 
 ```
 
-## Example Usage
+## How to use it (on multiple machines)
+
+Assuming you have multiple machines called `remote` and `local`, and that
+
+1. `remote` is reachable from `local` via SSH using public-key authentication 
+2. `remote` and `local` run MATLAB with the parallel computing toolbox
+3. `remote` and `local` have the latest versions of `psychopomp` and `xolotl` 
+
+Run the `psychopomp` daemon on the `remote`:
+
+```matlab
+% on the remote
+p = psychopomp;
+p.daemonize;
+```
+
+Now, you can add the `remote` as a cluster to `psychopomp` on `local`:
+
+```
+% on local
+p = psychopomp('address.of.remote');
+```
+
+It's that simple. All other operations are transparent, and all commands are the same whether you are using a local cluster or a remote cluster. 
+
+
+### Important caveat
+
+Keep in mind that the psychopomp daemon runs on a 5-second timer, so every command you write will take ~5 seconds to execute. When you're fetching data from the remote, budget at least 10 seconds to be safe.
+
+If you're writing a script that operates on remotes, liberally sprinkle your code with `pause(6)` after every remote operation.  
+
+## Examples 
 
 See [tests/](tests/test.m)
 

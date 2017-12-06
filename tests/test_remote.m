@@ -1,4 +1,6 @@
 % small script that tests psychopomp
+% using parallel workers both on the local
+% computer and on a remote cluster 
 % this simulates 100 different neurons 
 
 
@@ -51,18 +53,38 @@ for i = 1:length(g_CaS_space)
 end
 
 clear p 
-p = psychopomp;
-p.cleanup;
+
+% connect to a local cluster (on your machine)
+% and on a remote cluster 
+p = psychopomp('dalek.bio.brandeis.edu');
+
+% wipes all job files on local and on remote
+p.cleanup; 
+pause(6)
+
 p.n_batches = 2;
-p.x = x;
+
+% copies xolotl object to all remote clusters
+p.x = x; 
+pause(6)
+
+% split simulation parameter set into jobs, 
+% and distribute them optimally across all
+% connected clusters, local and remote 
 p.batchify(all_params,parameters_to_vary);
+pause(6)
 
 
-% configure the simulation type, and the analysis functions 
+% configure the function to run the simulation
+% this also copies this function onto all remotes
+% and configures all remotes 
 p.sim_func = @test_func;
+pause(6)
+
+return
 
 p.simulate;
-wait(p.workers)
+wait(p)
 
 [all_data,all_params,all_param_idx] = p.gather;
 burst_periods = all_data{1};
