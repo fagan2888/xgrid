@@ -16,7 +16,7 @@ function [all_data, all_params, all_param_idx] = gather(self)
 	% make sure nothing is running on any cluster
 	for i = 1:length(self.clusters)
 		if strcmp(self.clusters(i).Name,'local')
-			[n_do, n_doing] = p.getJobStatus;
+			[n_do, n_doing] = self.getJobStatus;
 			assert(n_do == 0,'At least one job is still queued on local')
 			assert(n_doing == 0,'At least one job is still running on local')
 		else

@@ -28,10 +28,7 @@ x.addConductance('AB','Leak',.99,-50);
 
 x.dt = 50e-3;
 x.t_end = 10e3;
-x.transpile;
-x.compile;
-x.skip_hash_check = true;
-x.closed_loop = false;
+
 
 % in this example, we are going to vary the maximal conductances of the Acurrent and the slow calcium conductance in a grid
 
@@ -59,9 +56,11 @@ p.batchify(all_params,parameters_to_vary);
 
 
 % configure the simulation type, and the analysis functions 
-p.sim_func = @test_func;
+p.sim_func = @psychopomp_test_func;
 
-p.simulate;
+return
+
+p.simulate(1);
 wait(p.workers)
 
 [all_data,all_params,all_param_idx] = p.gather;

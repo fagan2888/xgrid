@@ -225,7 +225,12 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				eval( ['[~,these_names] = struct2vec(' n{i} ');']);
 				self.allowed_param_names = [self.allowed_param_names; these_names];
 			end
-			self.x.closed_loop = false; 
+
+			% rebase, transpile and compile
+			self.x.rebase;
+			self.x.transpile;
+			self.x.compile;
+			
 			self.x.skip_hash_check = false;
 			self.xolotl_hash = self.x.hash;
 			self.x.skip_hash_check = true;

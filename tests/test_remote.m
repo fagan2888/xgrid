@@ -30,9 +30,6 @@ x.addConductance('AB','Leak',.99,-50);
 
 x.dt = 50e-3;
 x.t_end = 10e3;
-x.transpile;
-x.compile;
-x.skip_hash_check = true;
 x.closed_loop = false;
 
 % in this example, we are going to vary the maximal conductances of the Acurrent and the slow calcium conductance in a grid
@@ -56,21 +53,26 @@ clear p
 
 % connect to a local cluster (on your machine)
 % and on a remote cluster 
-p = psychopomp('dalek.bio.brandeis.edu');
+% make sure you have a variable called remote_name
+% that is the address of the remote
+p = psychopomp(remote_name);
 
 % wipes all job files on local and on remote
 p.cleanup; 
 pause(6)
 
-p.n_batches = 2;
 
 % copies xolotl object to all remote clusters
 p.x = x; 
+
+return
+
 pause(6)
 
 % split simulation parameter set into jobs, 
 % and distribute them optimally across all
 % connected clusters, local and remote 
+p.n_batches = 2;
 p.batchify(all_params,parameters_to_vary);
 pause(6)
 
@@ -78,12 +80,12 @@ pause(6)
 % configure the function to run the simulation
 % this also copies this function onto all remotes
 % and configures all remotes 
-p.sim_func = @test_func;
+p.sim_func = @psychopomp_test_func;
 pause(6)
 
 return
 
-p.simulate;
+p.simulate(1);
 wait(p)
 
 [all_data,all_params,all_param_idx] = p.gather;

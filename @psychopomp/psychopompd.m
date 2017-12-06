@@ -30,12 +30,17 @@ function psychopompd(self,~,~)
 	save(joinPath(self.psychopomp_folder,'log.mat'),'plog')
 
 	% run any commands specified by master
-	if exist('~/.psychopomp/com.mat')
-		load('~/.psychopomp/com.mat')
-		delete('~/.psychopomp/com.mat')
-		disp(['Running command ' command])
-		eval(['self.' command])
-		disp('Command completely successfully!')
+	try
+		if exist('~/.psychopomp/com.mat')
+			load('~/.psychopomp/com.mat')
+			delete('~/.psychopomp/com.mat')
+
+			disp(['Running command ' command])
+			eval(['self.' command])
+			disp('Command completely successfully!')
+		end
+	catch err
+		disp(err)
 	end
 
 

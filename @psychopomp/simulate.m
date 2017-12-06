@@ -59,7 +59,7 @@ function simulate(self, stagger_time)
 			if nargin < 2
 				command = ['simulate;'];
 			else
-				command = ['simulate(' stagger_time ');'];
+				command = ['simulate(' mat2str(stagger_time) ');'];
 			end
 
 			save('~/.psychopomp/com.mat','command')
