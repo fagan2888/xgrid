@@ -228,10 +228,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				assert(e == 0, 'Error copying sim function onto remote')
 
 				command = ['sim_func = @' func2str(value) ';'];
-				save('~/.psychopomp/com.mat','command')
-				disp('Copying command object onto remote...')
-				[e,o] = system(['scp ~/.psychopomp/com.mat ' self.clusters(i).Name ':~/.psychopomp/']);
-				assert(e == 0,'Error copying command onto remote')
+				self.tellRemote(self.clusters(i).Name,command);
 			end
 		end
 
@@ -243,7 +240,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			% add the ~/.psychopompd folder to the path so that sim functions can be resolved 
 			addpath('~/.psychopomp')
 
-			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',5);
+			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
 			start(self.daemon_handle);
 		end
 
@@ -272,18 +269,11 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 					continue
 				end
 				command = 'x = value; self.x.rebase; self.x.transpile; self.x.compile;';
-				save('~/.psychopomp/com.mat','command','value')
-				disp('Copying xolotl object onto remote...')
-				[e,o] = system(['scp ~/.psychopomp/com.mat ' self.clusters(i).Name ':~/.psychopomp/']);
-				assert(e == 0,'Error copying command onto remote')
+				self.tellRemote(self.clusters(i).Name,command,value);
 			end
 			
 		end % end set xolotl object
 
-		% function self = set.sim_func(self,value)
-		% 	% make sure it exists 
-		% 	% TO DO
-		% end % end set sim_func
 
 
 	end % end methods 

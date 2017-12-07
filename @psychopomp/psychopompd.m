@@ -9,41 +9,44 @@
 % 
 %
 % This is the daemon version of psychopomp
+% it's a very simple loop that is meant to be run
+% on a timer. every time it runs, it looks to see if 
+% there is a command that tells it to do something
+% and if so, tries to do it. that's it. 
+% it should never ever throw an error, so 
+% count on this running at all times
+
 function psychopompd(self,~,~)
 
-	% delete old log files if any 
-	if exist(joinPath(self.psychopomp_folder,'log.mat'),'file')
-		delete(joinPath(self.psychopomp_folder,'log.mat'))
+
+% run any commands specified by master
+response = 0;
+
+if exist('~/.psychopomp/com.mat','file') == 2
+
+	% wipe any old responses if they exist
+	if exist('~/.psychopomp/com_response.mat','file') == 2
+		delete('~/.psychopomp/com_response.mat')
 	end
 
-	% start logging
-	plog.host_name = strtrim(getComputerName);
-	plog.nthreads = 2*feature('numcores');
-	plog.xolotl_hash = self.xolotl_hash;
 
-	[plog.n_do, plog.n_doing, plog.n_done] = self.getJobStatus;
-	for i = 1:length(self.workers)
-		plog.worker_diary{i} = self.workers(i).Diary;
-		plog.worker_state{i} = self.workers(i).State;
-	end
-	plog.last_updated = now;
+	load('~/.psychopomp/com.mat')
+	delete('~/.psychopomp/com.mat')
 
-	save(joinPath(self.psychopomp_folder,'log.mat'),'plog')
+	disp(['Running command ' command])
 
-	% run any commands specified by master
+
 	try
-		if exist('~/.psychopomp/com.mat')
-			load('~/.psychopomp/com.mat')
-			delete('~/.psychopomp/com.mat')
 
-			disp(['Running command ' command])
-			eval(['self.' command])
-			disp('Command completely successfully!')
-		end
+		eval(['self.' command])
+		disp('Command completely successfully!')
+
+		save('~/.psychopomp/com_response.mat','response')
+
 	catch err
 		disp(err)
+		response = 1;
+		save('~/.psychopomp/com_response.mat','response')
 	end
 
-
-	disp(['psychopompd :: Updating log on ' datestr(now)])
 end

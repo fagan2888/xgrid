@@ -9,6 +9,7 @@
 % 
 
 function stop(self)
+	% stop workers on local machine
 	if ~isempty(self.workers)
 		disp('Stopping all workers...')
 		try
@@ -26,4 +27,12 @@ function stop(self)
 		this_job = allfiles(i).name;
 		movefile([doing_folder this_job],[do_folder this_job])
 	end
+
+	% try to stop workers on remote clusters
+	for i = 1:length(self.clusters)
+		if ~strcmp(self.clusters(i).Name,'local')
+			self.tellRemote(self.clusters(i).Name,'stop;')
+		end
+	end
+
 end

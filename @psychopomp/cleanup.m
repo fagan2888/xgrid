@@ -37,9 +37,6 @@ function cleanup(self)
 		if strcmp(self.clusters(i).Name,'local')
 			continue
 		end
-		command = 'cleanup';
-		save('~/.psychopomp/com.mat','command')
-		[e,o] = system(['scp ~/.psychopomp/com.mat ' self.clusters(i).Name ':~/.psychopomp/']);
-		assert(e == 0,'Error copying command onto remote')
+		self.tellRemote(self.clusters(i).Name,'cleanup');
 	end
 end

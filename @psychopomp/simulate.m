@@ -65,10 +65,7 @@ function simulate(self, stagger_time)
 				command = ['simulate(' mat2str(stagger_time) ');'];
 			end
 
-			save('~/.psychopomp/com.mat','command')
-			disp('Copying command object onto remote...')
-			[e,o] = system(['scp ~/.psychopomp/com.mat ' self.clusters(i).Name ':~/.psychopomp/']);
-			assert(e == 0,'Error copying command onto remote')
+			self.tellRemote(self.clusters(i).Name,command);
 
 
 		end

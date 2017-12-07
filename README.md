@@ -68,11 +68,11 @@ midgard                   0            4         24
 
 Assuming you have multiple machines called `remote` and `local`, and that
 
-1. `remote` is reachable from `local` via SSH using public-key authentication 
+1. `remote` is reachable from `local` via SSH using public-key authentication (You should be able to `ssh server.name` without specifying passwords or usernames)
 2. `remote` and `local` run MATLAB with the parallel computing toolbox
 3. `remote` and `local` have the latest versions of `psychopomp` and `xolotl` 
 
-Run the `psychopomp` daemon on the `remote`:
+Run the `psychopomp` [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) on the `remote`:
 
 ```matlab
 % on the remote
@@ -87,14 +87,8 @@ Now, you can add the `remote` as a cluster to `psychopomp` on `local`:
 p = psychopomp('address.of.remote');
 ```
 
-It's that simple. All other operations are transparent, and all commands are the same whether you are using a local cluster or a remote cluster. 
+It's that simple. All other operations are transparent, and all commands are the same whether you are using a local cluster or a remote cluster. Psychopomp handles all the communication with other computers, including running jobs, moving files -- everthing. 
 
-
-### Important caveat
-
-Keep in mind that the psychopomp daemon runs on a 5-second timer, so every command you write will take ~5 seconds to execute. When you're fetching data from the remote, budget at least 10 seconds to be safe.
-
-If you're writing a script that operates on remotes, liberally sprinkle your code with `pause(6)` after every remote operation.  
 
 ## Examples 
 

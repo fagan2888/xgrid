@@ -86,7 +86,7 @@ pause(6)
 
 return
 
-p.simulate(5);
+p.simulate(.5);
 wait(p)
 
 [all_data,all_params,all_param_idx] = p.gather;

@@ -7,7 +7,7 @@
 %    | |         __/ |                | |                   | |    
 %    |_|        |___/                 |_|                   |_|
 %  
-
+% return the status of jobs on local machine 
 
 function [n_do, n_doing, n_done] = getJobStatus(self)
 	do_folder = [self.psychopomp_folder oss 'do' oss ];

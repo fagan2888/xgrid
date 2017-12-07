@@ -27,13 +27,6 @@ function wait(self)
 				pause(5)
 				keep_waiting = true;
 			end
-
 		end
-
 	end
-
-
-
-
-
 end

@@ -31,14 +31,8 @@ function addCluster(self,cluster_name)
 		assert(e == 0, 'Could not contact server -- check that you have the right name and that it is reachable')
 
 		% check we can SSH into the server, and that psychopomp is running on that server
-		[e,o] = system(['scp ' cluster_name ':~/.psychopomp/log.mat ' self.psychopomp_folder '/' cluster_name '.log.mat']);
-		assert(e == 0,'SERVER ERROR: Either your server isnt available, or is unresponsive to SSH, or psychopomp isnt running on it')
-
-		% check that the log is fresh ( last 30 seconds)
+		self.tellRemote(cluster_name,'printLog;');
 		load([self.psychopomp_folder '/' cluster_name '.log.mat'])
-
-		v = datevec(now - plog.last_updated);
-		assert(etime(datevec(now), datevec(plog.last_updated)) < 30, 'Log file on remote is stale -- maybe the psychopompd is down?')
 
 		if isempty(self.clusters)
 			self.clusters(1).Name = cluster_name;
