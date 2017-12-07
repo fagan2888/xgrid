@@ -31,6 +31,8 @@ x.addConductance('AB','Leak',.99,-50);
 x.dt = 50e-3;
 x.t_end = 50e3;
 x.closed_loop = false;
+x.transpile;
+x.compile;
 
 % in this example, we are going to vary the maximal conductances of the Acurrent and the slow calcium conductance in a grid
 

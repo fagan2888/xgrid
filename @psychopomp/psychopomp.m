@@ -249,6 +249,8 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 
 		function self = set.x(self,value)
+			
+
 			assert(length(value)==1,'Only one xololt object can be linked')
 			self.x = value;
 			% determine the parameter names we expect 
@@ -259,10 +261,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				self.allowed_param_names = [self.allowed_param_names; these_names];
 			end
 
-			% rebase, transpile and compile
-			self.x.rebase;
-			self.x.transpile;
-			self.x.compile;
 			
 			self.x.skip_hash_check = false;
 			self.xolotl_hash = self.x.hash;
@@ -273,7 +271,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				if strcmp(self.clusters(i).Name,'local')
 					continue
 				end
-				command = 'x = value;';
+				command = 'x = value; self.x.rebase; self.x.transpile; self.x.compile;';
 				save('~/.psychopomp/com.mat','command','value')
 				disp('Copying xolotl object onto remote...')
 				[e,o] = system(['scp ~/.psychopomp/com.mat ' self.clusters(i).Name ':~/.psychopomp/']);
