@@ -54,6 +54,10 @@ function simulate_core(self,idx,n_runs)
 				[outputs{1:length(argOutNames(self.sim_func))}] = self.sim_func(self.x);
 				ok = true;
 			catch err
+				disp(err)
+				for j = 1:length(err.stack)
+					disp(['file: ' err.stack(j).file '  line:' err.stack(j).line])
+				end
 				warning('Error while running simulation function.')
 			end
 

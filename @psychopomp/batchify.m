@@ -45,20 +45,31 @@ function batchify(self,params,param_names)
 			continue
 		end
 		disp(['Copying job files onto ' self.clusters(i).Name])
-		for j = 1:job_distribution(i)
-			textbar(j,job_distribution(i))
-			allfiles = dir([do_folder '*.ppp']);
-			if length(allfiles) == 0 
-				continue
-			end
-			% copy a job file over
 
-			[e,o] = system(['scp ' do_folder allfiles(1).name ' ' self.clusters(i).Name ':~/.psychopomp/do/']);
 
-			assert(e == 0,'Error copying job file to remote cluster')
-			% delete it from the local
-			delete([do_folder allfiles(1).name])
+		% make a list of files to copy
+		allfiles = dir([do_folder '*.ppp']);
+		z = min([length(allfiles) job_distribution(i)]);
+		files_to_copy = allfiles(1:z);
+
+		% move them to a temp directory 
+		mkdir([do_folder 'remote_jobs'])
+		for j = 1:length(files_to_copy)
+			movefile([do_folder files_to_copy(j).name],[do_folder 'remote_jobs/' files_to_copy(j).name])
 		end
+
+		% copy them in one fell swoop
+		[e,o] = system(['scp ' do_folder 'remote_jobs/* ' self.clusters(i).Name ':~/.psychopomp/do/']);
+
+		assert(e == 0,'Error copying job file to remote cluster')
+
+		% delete the entire temp folder
+		for j = 1:length(files_to_copy)
+			delete([do_folder 'remote_jobs/' files_to_copy(j).name])
+		end
+		rmdir([do_folder 'remote_jobs'])
+
+
 	end
 
 end % end batchify

@@ -10,19 +10,31 @@
 
 function [burst_period, n_spikes_per_burst, spike_times] = psychopomp_test_func(x)
 
-x.closed_loop = false;
-x.reset;
+disp('Running sim func...')
+disp('Conductances:')
+round(x.getConductances('AB')')
 
-[V,Ca] = x.integrate; 
+try
 
-transient_cutoff = floor(length(V)/2);
-Ca = Ca(transient_cutoff:end,1);
-V = V(transient_cutoff:end);
+	x.closed_loop = false;
+	x.reset;
+	x.skip_hash_check = true;
 
-burst_metrics = psychopomp.findBurstMetrics(V,Ca);
+	[V,Ca] = x.integrate; 
 
-burst_period = burst_metrics(1);
-n_spikes_per_burst = burst_metrics(2);
+	transient_cutoff = floor(length(V)/2);
+	Ca = Ca(transient_cutoff:end,1);
+	V = V(transient_cutoff:end);
 
-spike_times = psychopomp.findNSpikes(V,100);
+	burst_metrics = psychopomp.findBurstMetrics(V,Ca);
 
+	burst_period = burst_metrics(1);
+	n_spikes_per_burst = burst_metrics(2);
+
+	spike_times = psychopomp.findNSpikes(V,100);
+
+	disp('Sim successfully completed!')
+
+catch
+	disp('error running function!')
+end

@@ -51,30 +51,41 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             		fprintf(['\nis using ' oval(self.clusters(i).nthreads) ' threads on ' self.clusters(i).Name]);
             	end
             end
-            
-            if isempty(self.x)
-            	fprintf(['\n\nXolotl has not been configured \n \n'])
-            else
-            	fprintf(['\n\nXolotl has been configured, with hash: ' self.xolotl_hash '\n \n'])
-            end
-			
-			fprintf('Cluster                   Queued     Running   Done\n')
-			fprintf('--------------------------------------------------\n')
+           
+			fprintf('\n\nCluster      Status  Queued  Running  Done  xolotl#\n')
+			fprintf('---------------------------------------------------------------\n')
 			for i = 1:length(self.clusters)
 				if strcmp(self.clusters(i).Name,'local')
 					[n_do, n_doing, n_done] = getJobStatus(self);
-					cluster_name_disp = ['local' repmat(' ',1,20)];
+					cluster_name_disp = flstring('local',12);
+					xhash = self.xolotl_hash;
+					status = '';
 				else
-					plog = self.getRemoteState(i);
+					plog(i) = self.getRemoteState(i);
 					cluster_name_disp = self.clusters(i).Name;
-					if length(cluster_name_disp) < 25
-						cluster_name_disp = [cluster_name_disp repmat(' ',1,25-length(cluster_name_disp))];
-					elseif length(cluster_name_disp) > 25
-						cluster_name_disp = cluster_name_disp(1:25);
+					cluster_name_disp = flstring(cluster_name_disp,12);
+					n_do = plog(i).n_do; n_doing = plog(i).n_doing; n_done = plog(i).n_done;
+					xhash = plog(i).xolotl_hash;
+					% check that the log isn't stale
+					if etime(datevec(now),datevec(plog.last_updated)) < 10
+						status = 'OK';
+					else
+						status = 'DEAD';
 					end
-					n_do = plog.n_do; n_doing = plog.n_doing; n_done = plog.n_done;
+
+					% copy worker info onto local structure
+					self.clusters(i).workers = [];
+					if isfield(plog(i),'worker_diary')
+						for j = 1:length(plog(i).worker_diary)
+							self.clusters(i).workers(j).Diary = plog(i).worker_diary{j};
+							self.clusters(i).workers(j).State = plog(i).worker_state{j};
+						end
+					end
 				end
-				fprintf([cluster_name_disp  ' ' oval(n_do) '            ' oval(n_doing) '         ' oval(n_done) '\n'])
+				if length(xhash) == 0
+					xhash = 'n/a         ';
+				end
+				fprintf([cluster_name_disp  ' ' flstring(status,7) ' ' flstring(oval(n_do),7) ' ' flstring(oval(n_doing),8) ' ' flstring(oval(n_done),5) ' ' xhash(1:7) '\n'])
 
 			end
 
@@ -103,39 +114,62 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             % 	end
             % end
 
-            % display the state of all the workers
-            if isempty(self.workers)
-            	fprintf('\nNo parallel workers connected.\n')
-            else
-            	fprintf('\nThread ID    State        Error         Output\n')
-            	fprintf('----------------------------------------------\n')
-            	for i = 1:length(self.workers)
-            		s = [];
-            		s = [s mat2str(self.workers(i).ID) '           ' ];
-            		if strcmp(self.workers(i).State,'running')
-            			s = [s 'running...    '];
-            		else
-            			s = [s 'DONE          '];
-            		end
-            		if length(self.workers(i).Error) == 0
-            			s = [s '          '];
-            		else
-            			s = [s 'ERROR!    '];
-            		end
+            % display the state of all the workers, on all nodes
 
-            		d = self.workers(i).Diary;
-            		try
-	            		d = splitlines(d);
-	            		if isempty(d{end})
-	            			d(end) = [];
+            fprintf('\n\nCluster      Worker  State      Output\n')
+			fprintf('---------------------------------------------------------------\n')
+
+            for i = 1:length(self.clusters)
+            	if strcmp(self.clusters(i).Name,'local')
+            		for j = 1:length(self.workers)
+            			cluster_name = flstring('local',12);
+            			wid = flstring(oval(j),7);
+            			ws = flstring(self.workers(j).State,10);
+            			wd = self.workers(j).Diary;
+            			if ~isempty(wd)
+	            			try
+		            			wd = splitlines(wd);
+			            		if isempty(wd{end})
+			            			wd(end) = [];
+			            		end
+
+	            				wd = flstring(wd{end},20);
+	            			catch
+	            				wd = flstring('error parsing diary',20);
+	            			end
+	            		else
+	            			wd = flstring('',20);
 	            		end
-            			s = [s d{end}];
-            		catch
+            			fprintf([cluster_name  ' ' wid ' ' ws ' ' wd  '\n'])
             		end
-            		s = [s '\n'];
-            		fprintf(s)
+            	else
+            		if isfield(plog,'worker_diary')
+	            		for j = 1:length(plog(i).worker_diary)
+	            			cluster_name = flstring(self.clusters(i).Name,12);
+	            			wid = flstring(oval(j),7);
+	            			ws = flstring(plog(i).worker_state{j},10);
+	            			wd = plog(i).worker_diary{j};
+	            			if ~isempty(wd)
+		            			try
+			            			wd = splitlines(wd);
+				            		if isempty(wd{end})
+				            			wd(end) = [];
+				            		end
+
+		            				wd = flstring(wd{end},20);
+		            			catch
+
+		            				wd = flstring('error parsing diary',20);
+		            			end
+		            		else
+		            			wd = flstring('',20);
+		            		end
+	            			fprintf([cluster_name  ' ' wid ' ' ws ' ' wd  '\n'])
+	            		end
+	            	end
             	end
             end
+
         end % end displayScalarObject
    end % end protected methods
 
@@ -145,8 +179,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 		function self = psychopomp(varargin)
 			% get the current pool, and start one if needed
-			self.current_pool = gcp;
-			self.num_workers = self.current_pool.NumWorkers;
+
 			if ispc
 				self.psychopomp_folder = fileparts(which(mfilename));
 			else

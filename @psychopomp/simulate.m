@@ -11,6 +11,9 @@
 
 function simulate(self, stagger_time)
 
+	assert(~isempty(self.sim_func),'No sim function configured, refusing to start')
+
+
 	for i = 1:length(self.clusters)
 		if strcmp(self.clusters(i).Name,'local')
 

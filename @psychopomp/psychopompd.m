@@ -24,6 +24,7 @@ function psychopompd(self,~,~)
 	[plog.n_do, plog.n_doing, plog.n_done] = self.getJobStatus;
 	for i = 1:length(self.workers)
 		plog.worker_diary{i} = self.workers(i).Diary;
+		plog.worker_state{i} = self.workers(i).State;
 	end
 	plog.last_updated = now;
 

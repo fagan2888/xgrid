@@ -52,6 +52,7 @@ p = psychopomp;
 p.cleanup;
 p.n_batches = 2;
 p.x = x;
+p.n_batches = 1;
 p.batchify(all_params,parameters_to_vary);
 
 
