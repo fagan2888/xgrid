@@ -30,11 +30,19 @@ if exist('~/.psychopomp/com.mat','file') == 2
 	end
 
 
-	load('~/.psychopomp/com.mat')
-	delete('~/.psychopomp/com.mat')
+	try
 
-	disp(['Running command ' command])
+		load('~/.psychopomp/com.mat')
+		delete('~/.psychopomp/com.mat')
 
+		disp(['Running command ' command])
+
+
+	catch err
+		disp(err)
+		response = 1;
+		save('~/.psychopomp/com_response.mat','response')
+	end
 
 	try
 

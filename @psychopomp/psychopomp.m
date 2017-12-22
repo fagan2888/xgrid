@@ -280,21 +280,14 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 	methods (Static)
 
-		function syn_state = getSynapseState(V,Ca,I_clamp,cond_states,syn_states,cont_states)
-			syn_state = syn_states(end,:);
-		end
-
-
-		function cond_state = getConductanceState(V,Ca,I_clamp,cond_states,syn_states,cont_states)
-			cond_state = cond_states(end,:);
-		end
-
-		function cont_state = getControllerState(V,Ca,I_clamp,cond_states,syn_states,cont_states)
-			cont_state = cont_states(end,:);
-		end
-
+		% this static method is to go from a voltage and calcium trace to burst metrics
+		% assuming you have the calcium trace (true in simulations)
 		[burst_metrics, spike_times, Ca_peaks, Ca_mins] = findBurstMetrics(V,Ca,varargin)
 		spiketimes = findNSpikes(V,n_spikes)
+
+		[neuron_metrics, phase_differences] = spiketimes2stats(varargin);
+
+
 
 
 	end % end static methods
