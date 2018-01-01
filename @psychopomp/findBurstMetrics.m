@@ -1,26 +1,26 @@
-%                          _                                       
-%                         | |                                      
-%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __  
-%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \ 
+%                          _
+%                         | |
+%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __
+%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \
 %    | |_) \__ \ |_| | (__| | | | (_) | |_) | (_) | | | | | | |_) |
-%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/ 
-%    | |         __/ |                | |                   | |    
+%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/
+%    | |         __/ |                | |                   | |
 %    |_|        |___/                 |_|                   |_|
-% 
+%
 % Explanation of outputs
 % ======================
-% 
-% findBurstMetrics finds the following things, 
+%
+% findBurstMetrics finds the following things,
 % which are returned in a 10-element vector
 % (1)  burst period (in units of dt)
 % (2)  # of spikes / burst
 % (3)  time of first spike relative to Ca peak (in units of dt)
 % (4)  time of last spike relative to Ca peak (in units of dt)
 % (5)  mean height of calcium peak (uM)
-% (6)  mean minimum of Calcium minimum (uM) 
+% (6)  mean minimum of Calcium minimum (uM)
 % (7)  variability of Calcium peaks (CV)
 % (8)  variability of burst periods (CV)
-% (9)  duty cycle 
+% (9)  duty cycle
 % (10) error code (see below for details)
 %
 % in addition, it returns the time of every spike,
@@ -37,14 +37,14 @@
 %
 % Explanation of error codes
 % ==========================
-% 
+%
 % 0 	No error
 % 1		Fewer than 5 Calcium peaks
 % 2 	Calcium peaks not similar enough
-% 3 	Burst periods too variable 
+% 3 	Burst periods too variable
 % 4 	No spikes
 
-function [burst_metrics, spike_times, Ca_peaks, Ca_mins] = findBurstMetrics(V,Ca,Ca_peak_similarity, burst_duration_variability)
+function [burst_metrics, spike_times, Ca_peaks, Ca_mins] = findBurstMetrics(V,Ca,Ca_peak_similarity, burst_duration_variability,on_off_thresh)
 
 assert(isvector(V),'Voltage trace has to be a vector')
 assert(isvector(Ca),'Calcium trace has to be a vector')
@@ -54,6 +54,9 @@ if nargin < 3
 end
 if nargin < 4
 	burst_duration_variability = .1;
+end
+if nargin < 5
+	on_off_thresh = 0;
 end
 
 burst_metrics = -ones(10,1);
@@ -67,7 +70,7 @@ Ca_prom = std(Ca);
 Ca_peaks = burst_peak_loc;
 
 % find spikes
-spike_times = nonnans(psychopomp.findNSpikes(V,1000));
+spike_times = nonnans(psychopomp.findNSpikes(V,1000,on_off_thresh));
 
 if length(spike_times) == 0
 	burst_metrics(10) = 4;
@@ -80,7 +83,7 @@ if length(peak_Ca) < 5
 	return
 end
 
-% check for similarity of peak heights 
+% check for similarity of peak heights
 cv_peak_Ca = std(peak_Ca)/(mean(peak_Ca));
 if  cv_peak_Ca > Ca_peak_similarity
 	burst_metrics(10) = 2;
@@ -120,11 +123,11 @@ end
 for i = 2:length(burst_peak_loc-1)
 
 
-	% we consider spikes to belong the current calcium peak if they 
+	% we consider spikes to belong the current calcium peak if they
 	% occur after a and before z
-	% where a is the half-way point b/w the previous Ca max 
-	% and the preceding Ca minimum, and where 
-	% z is the half-way point b/w the current Ca max and the next Ca minimum 
+	% where a is the half-way point b/w the previous Ca max
+	% and the preceding Ca minimum, and where
+	% z is the half-way point b/w the current Ca max and the next Ca minimum
 
 	% find the preceding calcium minimum
 	[~,idx] = min(Ca(burst_peak_loc(i-1):burst_peak_loc(i)));
@@ -142,7 +145,7 @@ for i = 2:length(burst_peak_loc-1)
 	next_ca_min = idx + burst_peak_loc(i);
 	z = floor((burst_peak_loc(i) + next_ca_min)/2);
 
-	
+
 
 	% find spikes in this interval
 	spikes_in_this_burst = spike_times(spike_times < z & spike_times > a);
@@ -195,4 +198,3 @@ if nargout == 0
 	fprintf(['# spikes/burst:     '  oval(burst_metrics(2)) '\n'])
 	fprintf(['Duty Cycle:         '  oval(burst_metrics(9),3) '\n'])
 end
-

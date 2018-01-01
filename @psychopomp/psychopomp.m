@@ -1,22 +1,22 @@
-%                          _                                       
-%                         | |                                      
-%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __  
-%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \ 
+%                          _
+%                         | |
+%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __
+%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \
 %    | |_) \__ \ |_| | (__| | | | (_) | |_) | (_) | | | | | | |_) |
-%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/ 
-%    | |         __/ |                | |                   | |    
+%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/
+%    | |         __/ |                | |                   | |
 %    |_|        |___/                 |_|                   |_|
-%     
+%
 % a MATLAB class to run parameter scans of neuron models
 % runs using xolotl (https://github.com/sg-s/xolotl)
-% needs the parallel computing toolbox 
+% needs the parallel computing toolbox
 
 classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 	properties
 		x@xolotl
 		sim_func@function_handle
-		n_func_outputs % how many outputs will the simulation function generate? 
+		n_func_outputs % how many outputs will the simulation function generate?
 		use_parallel = true
 		n_batches = 10 % per worker
 		verbosity = 1;
@@ -35,7 +35,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 	end
 
 	properties (Access = protected)
-		psychopomp_folder 
+		psychopomp_folder
 		sim_start_time
 	end
 
@@ -51,7 +51,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             		fprintf(['\nis using ' oval(self.clusters(i).nthreads) ' threads on ' self.clusters(i).Name]);
             	end
             end
-           
+
 			fprintf('\n\nCluster      Status  Queued  Running  Done  xolotl#\n')
 			fprintf('---------------------------------------------------------------\n')
 			for i = 1:length(self.clusters)
@@ -217,7 +217,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		function self = set.sim_func(self,value)
 			self.sim_func = value;
 
-			% if there are remotes, copy this function onto the remotes, and ask them to configure it 
+			% if there are remotes, copy this function onto the remotes, and ask them to configure it
 			for i = 1:length(self.clusters)
 				if strcmp(self.clusters(i).Name,'local')
 					continue
@@ -237,7 +237,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			% to do -- check if daemon is already running
 			%self.daemon_handle = parfeval(@self.psychopompd,0);
 
-			% add the ~/.psychopompd folder to the path so that sim functions can be resolved 
+			% add the ~/.psychopompd folder to the path so that sim functions can be resolved
 			addpath('~/.psychopomp')
 
 			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
@@ -246,11 +246,11 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 
 		function self = set.x(self,value)
-			
+
 
 			assert(length(value)==1,'Only one xololt object can be linked')
 			self.x = value;
-			% determine the parameter names we expect 
+			% determine the parameter names we expect
 			n = self.x.compartment_names;
 			for i = 1:length(n)
 				eval([n{i} ' = self.x.(n{i});']);
@@ -258,7 +258,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				self.allowed_param_names = [self.allowed_param_names; these_names];
 			end
 
-			
+
 			self.x.skip_hash_check = false;
 			self.xolotl_hash = self.x.hash;
 			self.x.skip_hash_check = true;
@@ -271,19 +271,19 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				command = 'x = value; self.x.rebase; self.x.transpile; self.x.compile;';
 				self.tellRemote(self.clusters(i).Name,command,value);
 			end
-			
+
 		end % end set xolotl object
 
 
 
-	end % end methods 
+	end % end methods
 
 	methods (Static)
 
 		% this static method is to go from a voltage and calcium trace to burst metrics
 		% assuming you have the calcium trace (true in simulations)
 		[burst_metrics, spike_times, Ca_peaks, Ca_mins] = findBurstMetrics(V,Ca,varargin)
-		spiketimes = findNSpikes(V,n_spikes)
+		spiketimes = findNSpikes(V,n_spikes,varargin)
 
 		[neuron_metrics, phase_differences] = spiketimes2stats(varargin);
 
@@ -292,7 +292,4 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 	end % end static methods
 
-end % end classdef 
-
-
-
+end % end classdef
