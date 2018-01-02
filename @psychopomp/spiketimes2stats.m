@@ -21,6 +21,8 @@
 % (4) CV of duty cycle 
 % (5) #spikes/burst
 % (6) CV of (5)
+% (7) mean firing rate 
+% (8) CV of ISI 
 %  
 % phase_differences
 % =================
@@ -47,7 +49,7 @@ if size(varargin{1},2) > 1
 	neuron_metrics = cell(N,1);
 	phase_differences = cell(N,1);
 	for i = 1:N
-		neuron_metrics{i} = NaN(6,size(varargin{1},2));
+		neuron_metrics{i} = NaN(8,size(varargin{1},2));
 	end
 	for i = 1:N
 		phase_differences{i} = NaN(2,size(varargin{1},2));
@@ -73,7 +75,7 @@ end
 neuron_metrics = cell(N,1);
 phase_differences = cell(N,1);
 for i = 1:N
-	neuron_metrics{i} = NaN(6,1);
+	neuron_metrics{i} = NaN(8,1);
 end
 for i = 1:N
 	phase_differences{i} = NaN(2,1);
@@ -121,7 +123,10 @@ for i = 1:N
 		neuron_metrics{i}(4) = -1; % time period not defined
 
 		neuron_metrics{i}(5) =  0; % #spikes/burst
-		neuron_metrics{i}(6) = -1; 
+		neuron_metrics{i}(6) = 0; 
+
+		neuron_metrics{i}(7) =  0; % firing rate
+		neuron_metrics{i}(8) = 0;  % CV of ISI
 
 		if i > 1
 			phase_differences{i}(1:2) = -1; % phase differences not defined 
@@ -145,14 +150,20 @@ for i = 1:N
 	spike_mins = NaN*ons;
 	burst_durations = NaN*ons;
 	n_spike_per_burst = NaN*ons;
+
 	for j = 2:length(ons)
 		[~,idx] = min(X{i}(ons(j-1):ons(j)));
 		idx = idx(end);
 		spike_mins(j) = ons(j-1) + idx;
 
+		bd = find(varargin{i}(spike_mins(j):spike_peaks{i}(j)),1,'last');
+		if isempty(bd)
+			% only 1 spike in this "burst", so 
+			% count it as 0
+			bd = 0;
+		end
 
-		burst_durations(j) = find(varargin{i}(spike_mins(j):spike_peaks{i}(j)),1,'last');
-	
+		burst_durations(j) = bd;
 
 		n_spike_per_burst(j) = full(sum(varargin{i}(spike_mins(j):spike_peaks{i}(j))));
 	end
@@ -169,6 +180,11 @@ for i = 1:N
 	% n_spike_per_burst + variability 
 	neuron_metrics{i}(5) = mean(n_spike_per_burst(2:end));
 	neuron_metrics{i}(6) = std(n_spike_per_burst(2:end))/neuron_metrics{i}(5);
+
+	% mean firing rate + CV of ISI
+	spiketimes = find(varargin{i});
+	neuron_metrics{i}(7) = length(spiketimes)/length(X{i});
+	neuron_metrics{i}(8) = cv(diff(spiketimes));
 
 	if i > 1
 
