@@ -283,7 +283,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		% this static method is to go from a voltage and calcium trace to burst metrics
 		% assuming you have the calcium trace (true in simulations)
 		[burst_metrics, spike_times, Ca_peaks, Ca_mins] = findBurstMetrics(V,Ca,varargin)
-		spiketimes = findNSpikes(V,n_spikes,varargin)
+		spiketimes = findNSpikes(V,n_spikes,on_off_thresh)
 
 		[neuron_metrics, phase_differences] = spiketimes2stats(varargin);
 
