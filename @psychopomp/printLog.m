@@ -22,6 +22,10 @@ plog.nthreads = 2*feature('numcores');
 plog.xolotl_hash = self.xolotl_hash;
 
 [plog.n_do, plog.n_doing, plog.n_done] = self.getJobStatus;
+
+plog.worker_diary = {};
+plog.worker_state = {};
+
 for i = 1:length(self.workers)
 	plog.worker_diary{i} = self.workers(i).Diary;
 	plog.worker_state{i} = self.workers(i).State;

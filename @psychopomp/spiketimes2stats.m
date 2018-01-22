@@ -184,7 +184,11 @@ for i = 1:N
 	% mean firing rate + CV of ISI
 	spiketimes = find(varargin{i});
 	neuron_metrics{i}(7) = length(spiketimes)/length(X{i});
-	neuron_metrics{i}(8) = cv(diff(spiketimes));
+	if length(spiketimes) > 1
+		neuron_metrics{i}(8) = cv(diff(spiketimes));
+	else
+		neuron_metrics{i}(8) = 0; 
+	end
 
 	if i > 1
 

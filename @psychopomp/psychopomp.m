@@ -62,6 +62,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 					status = '';
 				else
 					plog(i) = self.getRemoteState(i);
+
 					cluster_name_disp = self.clusters(i).Name;
 					cluster_name_disp = flstring(cluster_name_disp,12);
 					n_do = plog(i).n_do; n_doing = plog(i).n_doing; n_done = plog(i).n_done;
