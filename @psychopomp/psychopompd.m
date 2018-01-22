@@ -21,7 +21,8 @@ function psychopompd(self,~,~)
 
 % first, check for daemon_running. if this file
 % doesn't exist, then the daemon will immediately shut down
-if ~(exist('~/.psychopomp/daemon_running','file') == 2)
+if exist('~/.psychopomp/daemon_running','file') ~= 2
+	disp('daemon_running missing, shutting down immediately!')
 	stop(self.daemon_handle);
 	return
 end
