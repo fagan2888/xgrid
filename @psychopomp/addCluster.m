@@ -27,12 +27,23 @@ function addCluster(self,cluster_name)
 	else
 
 		% check if we can ping the cluster
-		[e,o]=system(['ping ' cluster_name ' -c 1']);
+		[e,~]=system(['ping ' cluster_name ' -c 1']);
 		assert(e == 0, 'Could not contact server -- check that you have the right name and that it is reachable')
 
 		% check we can SSH into the server, and that psychopomp is running on that server
+
 		self.tellRemote(cluster_name,'printLog;');
-		load([self.psychopomp_folder '/' cluster_name '.log.mat'])
+
+		[e,~] = system(['scp ' cluster_name ':~/.psych/log.mat ' self.psychopomp_folder '/' cluster_name '.log.mat']);
+
+		if e == 0
+
+			% load the log 
+			load([self.psychopomp_folder '/' cluster_name '.log.mat']);
+		else
+			error('Could not connect to remote.')
+		end
+
 
 		if isempty(self.clusters)
 			self.clusters(1).Name = cluster_name;
