@@ -44,7 +44,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
         function displayScalarObject(self)
             url = 'https://github.com/sg-s/psychopomp/';
             fprintf(['\b\b\b\b\b\b<a href="' url '">psychopomp</a> '])
-            if length(self.clusters) == 0
+            if isempty(self.clusters) 
             	 fprintf('is not connected to any cluster!')
             else
             	for i = 1:length(self.clusters)
@@ -54,7 +54,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 			fprintf('\n\nCluster      Status  Queued  Running  Done  xolotl#\n')
 			fprintf('---------------------------------------------------------------\n')
-			for i = 1:length(self.clusters)
+			for i = length(self.clusters):-1:1
 				if strcmp(self.clusters(i).Name,'local')
 					[n_do, n_doing, n_done] = getJobStatus(self);
 					cluster_name_disp = flstring('local',12);
@@ -83,37 +83,12 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 						end
 					end
 				end
-				if length(xhash) == 0
+				if isempty(xhash) 
 					xhash = 'n/a         ';
 				end
 				fprintf([cluster_name_disp  ' ' flstring(status,7) ' ' flstring(oval(n_do),7) ' ' flstring(oval(n_doing),8) ' ' flstring(oval(n_done),5) ' ' xhash(1:7) '\n'])
 
 			end
-
-
-
-
-            % if isempty(self.sim_start_time)
-            % 	fprintf('Simulations have not been started. \n')
-            % else
-            % 	fprintf(['Simulations started on      : ' datestr(self.sim_start_time) '\n'])
-            % 	if length(running_jobs) > 0
-            % 		elapsed_time = now - self.sim_start_time;
-            % 		if length(done_jobs) > 0
-            % 			ldj = length(done_jobs);
-            % 			rem_jobs = total_jobs - ldj;
-            % 			time_per_job = elapsed_time/ldj;
-            % 			time_rem = time_per_job*rem_jobs;
-            % 			when_done = time_rem + now;
-            % 			fprintf(['Estimated time of completion: ' datestr(when_done) '\n'])
-
-            % 			n_sims_per_job = self.n_sims/(self.n_batches*self.num_workers);
-            % 			T = (n_sims_per_job*self.x.t_end)/1000; % s
-            % 			dv = datevec(time_per_job);
-            % 			elapsed_sec = dv(end) + dv(end-1)*60 + dv(end-2)*60*60 + dv(end-3)*60*60*24;
-            % 		end
-            % 	end
-            % end
 
             % display the state of all the workers, on all nodes
 
@@ -225,7 +200,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				end
 
 				% copy the sim function onto the remote
-				[e,o] = system(['scp "' which(func2str(value)) '" ' self.clusters(i).Name ':~/.psychopomp/']);
+				[e,~] = system(['scp "' which(func2str(value)) '" ' self.clusters(i).Name ':~/.psychopomp/']);
 				assert(e == 0, 'Error copying sim function onto remote')
 
 				command = ['sim_func = @' func2str(value) ';'];
@@ -235,14 +210,18 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 
 		function daemonize(self)
-			% to do -- check if daemon is already running
-			%self.daemon_handle = parfeval(@self.psychopompd,0);
+			if exist('~/.psychopomp/daemon_running','file')
+				error('Daemon is already running. Refusing to start. To force start, delete "~/.psychopomp/daemon_running"')
+			end
 
-			% add the ~/.psychopompd folder to the path so that sim functions can be resolved
+			% add the ~/.psychopomp folder to the path so that sim functions can be resolved
 			addpath('~/.psychopomp')
 
 			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
 			start(self.daemon_handle);
+
+			system('touch ~/.psychopomp/daemon_running')
+
 		end
 
 

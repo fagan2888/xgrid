@@ -35,4 +35,10 @@ function stop(self)
 		end
 	end
 
+	% if the daemon is running, stop it
+	if isempty(self.daemon_handle)
+		stop(self.daemon_handle)
+		delete('~/.psychopomp/daemon_running')
+	end
+
 end
