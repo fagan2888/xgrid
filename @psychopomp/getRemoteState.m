@@ -12,7 +12,7 @@ function plog = getRemoteState(self,idx)
 
 	self.tellRemote(self.clusters(idx).Name,'printLog;');
 
-	[e,o] = system(['scp ' self.clusters(idx).Name ':~/.psychopomp/log.mat ' self.psychopomp_folder '/' self.clusters(idx).Name '.log.mat']);
+	[e,o] = system(['scp ' self.clusters(idx).Name ':~/.psych/log.mat ' self.psychopomp_folder '/' self.clusters(idx).Name '.log.mat']);
 
 	% load the log 
 	load([self.psychopomp_folder '/' self.clusters(idx).Name '.log.mat']);

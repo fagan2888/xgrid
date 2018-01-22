@@ -159,7 +159,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			if ispc
 				self.psychopomp_folder = fileparts(which(mfilename));
 			else
-				self.psychopomp_folder = '~/.psychopomp';
+				self.psychopomp_folder = '~/.psych';
 				if exist(self.psychopomp_folder,'file') == 7
 				else
 					mkdir(self.psychopomp_folder)
@@ -200,7 +200,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				end
 
 				% copy the sim function onto the remote
-				[e,~] = system(['scp "' which(func2str(value)) '" ' self.clusters(i).Name ':~/.psychopomp/']);
+				[e,~] = system(['scp "' which(func2str(value)) '" ' self.clusters(i).Name ':~/.psych/']);
 				assert(e == 0, 'Error copying sim function onto remote')
 
 				command = ['sim_func = @' func2str(value) ';'];
@@ -210,17 +210,20 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 
 		function daemonize(self)
-			if exist('~/.psychopomp/daemon_running','file')
-				error('Daemon is already running. Refusing to start. To force start, delete "~/.psychopomp/daemon_running"')
+			if exist('~/.psych/daemon_running','file')
+				error('Daemon is already running. Refusing to start. To force start, delete "~/.psych/daemon_running"')
 			end
 
-			% add the ~/.psychopomp folder to the path so that sim functions can be resolved
-			addpath('~/.psychopomp')
+			% add the ~/.psych folder to the path so that sim functions can be resolved
+			addpath('~/.psych')
+
+			system('touch ~/.psych/daemon_running')
+			pause(3)
 
 			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
 			start(self.daemon_handle);
 
-			system('touch ~/.psychopomp/daemon_running')
+			
 
 		end
 

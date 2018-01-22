@@ -21,7 +21,7 @@ function psychopompd(self,~,~)
 
 % first, check for daemon_running. if this file
 % doesn't exist, then the daemon will immediately shut down
-if exist('~/.psychopomp/daemon_running','file') ~= 2
+if exist('~/.psych/daemon_running','file') ~= 2
 	disp('daemon_running missing, shutting down immediately!')
 	stop(self.daemon_handle);
 	return
@@ -31,18 +31,18 @@ end
 % run any commands specified by master
 response = 0;
 
-if exist('~/.psychopomp/com.mat','file') == 2
+if exist('~/.psych/com.mat','file') == 2
 
 	% wipe any old responses if they exist
-	if exist('~/.psychopomp/com_response.mat','file') == 2
-		delete('~/.psychopomp/com_response.mat')
+	if exist('~/.psych/com_response.mat','file') == 2
+		delete('~/.psych/com_response.mat')
 	end
 
 
 	try
 
-		load('~/.psychopomp/com.mat')
-		delete('~/.psychopomp/com.mat')
+		load('~/.psych/com.mat')
+		delete('~/.psych/com.mat')
 
 		disp(['Running command ' command])
 
@@ -50,7 +50,7 @@ if exist('~/.psychopomp/com.mat','file') == 2
 	catch err
 		disp(err)
 		response = 1;
-		save('~/.psychopomp/com_response.mat','response')
+		save('~/.psych/com_response.mat','response')
 	end
 
 	try
@@ -58,12 +58,12 @@ if exist('~/.psychopomp/com.mat','file') == 2
 		eval(['self.' command])
 		disp('Command completely successfully!')
 
-		save('~/.psychopomp/com_response.mat','response')
+		save('~/.psych/com_response.mat','response')
 
 	catch err
 		disp(err)
 		response = 1;
-		save('~/.psychopomp/com_response.mat','response')
+		save('~/.psych/com_response.mat','response')
 	end
 
 end

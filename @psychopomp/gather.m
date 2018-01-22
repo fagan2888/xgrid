@@ -31,9 +31,9 @@ function [all_data, all_params, all_param_idx] = gather(self)
 	for i = 1:length(self.clusters)
 		if strcmp(self.clusters(i).Name,'local')
 		else
-			[e,o] = system(['scp ' self.clusters(i).Name ':~/.psychopomp/done/*.ppp ~/.psychopomp/done/' ]);
+			[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/*.ppp ~/.psych/done/' ]);
 			assert(e == 0,' Error copying files from remote')
-			[e,o] = system(['scp ' self.clusters(i).Name ':~/.psychopomp/done/*.ppp.data ~/.psychopomp/done/' ]);
+			[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/*.ppp.data ~/.psych/done/' ]);
 			assert(e == 0,' Error copying files from remote')
 		end
 	end

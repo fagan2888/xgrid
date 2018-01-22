@@ -59,7 +59,7 @@ function batchify(self,params,param_names)
 		end
 
 		% copy them in one fell swoop
-		[e,o] = system(['scp ' do_folder 'remote_jobs/* ' self.clusters(i).Name ':~/.psychopomp/do/']);
+		[e,o] = system(['scp ' do_folder 'remote_jobs/* ' self.clusters(i).Name ':~/.psych/do/']);
 
 		assert(e == 0,'Error copying job file to remote cluster')
 

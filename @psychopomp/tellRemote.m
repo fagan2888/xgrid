@@ -17,23 +17,23 @@ if nargin < 4
 	value = 0;
 end
 
-if exist('~/.psychopomp/com_response.mat') == 2
-	delete('~/.psychopomp/com_response.mat')
+if exist('~/.psych/com_response.mat') == 2
+	delete('~/.psych/com_response.mat')
 end
 
-save('~/.psychopomp/com.mat','command','value');
-[e,o] = system(['scp ~/.psychopomp/com.mat ' cluster_name ':~/.psychopomp/']);
+save('~/.psych/com.mat','command','value');
+[e,o] = system(['scp ~/.psych/com.mat ' cluster_name ':~/.psych/']);
 assert(e == 0,'Error copying command onto remote')
 pause(1)
 tic 
 goon = true;
 t = toc;
 while goon
-	[e,o] = system(['scp ' cluster_name ':~/.psychopomp/com_response.mat ~/.psychopomp/']);
+	[e,o] = system(['scp ' cluster_name ':~/.psych/com_response.mat ~/.psych/']);
 	pause(1)
 	
 	if e == 0
-		load('~/.psychopomp/com_response.mat')
+		load('~/.psych/com_response.mat')
 		if response == 0
 			goon = false;
 			return
