@@ -68,7 +68,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 					n_do = plog(i).n_do; n_doing = plog(i).n_doing; n_done = plog(i).n_done;
 					xhash = plog(i).xolotl_hash;
 					% check that the log isn't stale
-					if etime(datevec(now),datevec(plog.last_updated)) < 10
+					if etime(datevec(now),datevec(plog(i).last_updated)) < 10
 						status = 'OK';
 					else
 						status = 'DEAD';
