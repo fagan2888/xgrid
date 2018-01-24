@@ -10,6 +10,17 @@
 function batchify(self,params,param_names)
 	assert(~isempty(self.x),'First configure the xolotl object')
 	assert(~isempty(self.clusters),'At least one cluster has to be connected')
+
+	% check that param names resolve correctly -- we do 
+	% so by attempting to read this property for each param name
+	for i = 1:length(param_names)
+		try
+			eval(['temp = self.x.' param_names{i} ';']);
+		catch
+			error('Parameter names did not resolve correctly')
+		end
+	end
+
 	n_sims = size(params,2);
 	self.n_sims = n_sims;
 	assert(size(params,1) == length(param_names),'Param names does not match parameter dimensions')
@@ -18,6 +29,8 @@ function batchify(self,params,param_names)
 	n_jobs = total_workers*self.n_batches;
 	job_size = ceil(n_sims/n_jobs);
 	idx = 1; c = 1;
+
+
 
 
 	while idx <= n_sims
