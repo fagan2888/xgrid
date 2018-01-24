@@ -51,6 +51,7 @@ function simulate_core(self,idx,n_runs)
 			% run the model
 			ok = false;
 			try
+
 				[outputs{1:length(argOutNames(self.sim_func))}] = self.sim_func(self.x);
 				ok = true;
 			catch err

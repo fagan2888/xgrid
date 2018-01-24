@@ -35,7 +35,6 @@ x.compile;
 x.integrate;
 x.closed_loop = false;
 
-
 % in this example, we are going to vary the maximal conductances of the Acurrent and the slow calcium conductance in a grid
 
 parameters_to_vary = {'AB.CaS.gbar','AB.ACurrent.gbar'};
@@ -56,7 +55,7 @@ end
 clear p 
 p = psychopomp;
 p.cleanup;
-p.n_batches = 2;
+p.n_batches = 1;
 p.x = x;
 p.batchify(all_params,parameters_to_vary);
 
@@ -69,41 +68,9 @@ p.simulate(.1);
 wait(p.workers)
 t = toc;
 
+disp('Multi-threaded performance:')
+(p.x.t_end*length(all_params)*1e-3)/t
 
-[all_data,all_params,all_param_idx] = p.gather;
-burst_periods = all_data{1};
-n_spikes_per_burst = all_data{2};
-spiketimes = all_data{3};
-
-
-% assemble the data into a matrix for display
-BP_matrix = NaN(length(g_CaS_space),length(g_A_space));
-NS_matrix = NaN(length(g_CaS_space),length(g_A_space));
-for i = 1:length(all_params)
-	x = find(all_params(1,i) == g_CaS_space);
-	y = find(all_params(2,i) == g_A_space);
-	BP_matrix(x,y) = burst_periods(i);
-	NS_matrix(x,y) = n_spikes_per_burst(i);
-end
-BP_matrix(BP_matrix<0) = NaN;
-NS_matrix(NS_matrix<0) = 0;
-
-figure('outerposition',[0 0 1100 500],'PaperUnits','points','PaperSize',[1100 500]); hold on
-subplot(1,2,1)
-h = heatmap(g_A_space,g_CaS_space,BP_matrix);
-h.Colormap = parula;
-h.MissingDataColor = [1 1 1];
-ylabel('g_CaS')
-xlabel('g_A')
-title('Burst period (ms)')
-
-subplot(1,2,2)
-h = heatmap(g_A_space,g_CaS_space,NS_matrix);
-h.Colormap = parula;
-h.MissingDataColor = [1 1 1];
-ylabel('g_CaS')
-xlabel('g_A')
-title('#spikes/burst')
-
-prettyFig();
-
+disp('Single-threaded performance:')
+tic, p.x.integrate; t = toc;
+(p.x.t_end*1e-3)/t

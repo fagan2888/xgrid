@@ -35,6 +35,6 @@ try
 
 	disp('Sim successfully completed!')
 
-catch
+catch err
 	disp('error running function!')
 end
