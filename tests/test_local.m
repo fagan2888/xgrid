@@ -60,6 +60,7 @@ p.n_batches = 2;
 p.x = x;
 p.batchify(all_params,parameters_to_vary);
 
+return
 
 % configure the simulation type, and the analysis functions 
 p.sim_func = @psychopomp_test_func;
