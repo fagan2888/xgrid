@@ -12,6 +12,11 @@
 function simulate(self, stagger_time)
 
 	assert(~isempty(self.sim_func),'No sim function configured, refusing to start')
+    
+    if nargin < 2
+        disp('No stagger time configured, setting to defaults')
+        stagger_time = 1;
+    end
 
 	% make sure there exists a linked binary
 	if isempty(self.x.linked_binary)
@@ -31,23 +36,6 @@ function simulate(self, stagger_time)
 				m = matfile(joinPath(allfiles(i).folder,allfiles(i).name));
 				assert(strcmp(self.xolotl_hash,m.xhash),'At least one job didnt match the hash of the currently configured Xolotl object')
 			end
-
-			% first run one sim, and time it 
-			if nargin < 2
-				try
-					tic
-					self.sim_func(self.x);
-					t = toc;
-					t = t/2;
-				catch
-					error('Attempted to run simulation function and encountered an error. Check your function and make sure it works.')
-				end
-
-				job_time = ceil(self.n_sims/(self.num_workers*self.n_batches))*t;
-				stagger_time = job_time/(self.num_workers+1);
-
-			end
-
 
 			self.sim_start_time = now;
 
