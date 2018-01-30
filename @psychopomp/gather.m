@@ -50,9 +50,21 @@ function [all_data, all_params, all_param_idx] = gather(self)
 	all_params = this_params;
 	all_param_idx = param_idx;
 
+	xhash0 = xhash;
+
 	for i = 2:length(data_files) % because we've already loaded the first one (see above)
+		clear data param_idx param_names this_params xhash
 		load([done_folder data_files(i).name],'-mat');
 		load([done_folder job_files(i).name],'-mat');
+
+		% check that the xhash matches
+		assert(strcmp(xhash,xhash0),'xolotl hashes for two files do not match. this is a fatal error')
+
+		for j = 1:length(data)
+			if size(data{j},2) ~= size(this_params,2)
+				error('Size of params and data do not match. this is a fatal error')
+			end
+		end
 
 		for j = 1:length(all_data)
 			all_data{j} = [all_data{j} data{j}];
