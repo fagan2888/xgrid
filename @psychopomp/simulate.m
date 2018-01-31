@@ -32,7 +32,7 @@ function simulate(self, stagger_time)
 			% check that every job has the correct hash
 			do_folder = [self.psychopomp_folder oss 'do' oss ];
 			allfiles = dir([do_folder '*.ppp']);
-			for i = 1:length(allfiles)
+			for j = 1:length(allfiles)
 				m = matfile(joinPath(allfiles(i).folder,allfiles(i).name));
 				assert(strcmp(self.xolotl_hash,m.xhash),'At least one job didnt match the hash of the currently configured Xolotl object')
 			end
@@ -43,9 +43,9 @@ function simulate(self, stagger_time)
 				disp('Starting workers...')
 			end
 
-			for i = 1:self.num_workers
-				F(i) = parfeval(@self.simulate_core,0,i,Inf);
-				textbar(i,self.num_workers)
+			for j = self.num_workers:-1:1
+				F(j) = parfeval(@self.simulate_core,0,i,Inf);
+				textbar(self.num_workers - j + 1,self.num_workers)
 				pause(stagger_time)
 			end
 			self.workers = F;
@@ -54,12 +54,7 @@ function simulate(self, stagger_time)
 			% it's a remote cluster. ask the remote (nicely)
 			% to start the simulations
 
-			if nargin < 2
-				command = ['simulate;'];
-			else
-				command = ['simulate(' mat2str(stagger_time) ');'];
-			end
-
+			command = ['simulate(' mat2str(stagger_time) ');'];
 			self.tellRemote(self.clusters(i).Name,command);
 
 

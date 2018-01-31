@@ -19,7 +19,7 @@ function simulate_core(self,idx,n_runs)
 		done_folder = [self.psychopomp_folder oss 'done' oss ];
 		free_jobs = dir([ do_folder '*.ppp']);
 
-		if length(free_jobs) == 0
+		if isempty(free_jobs)
 			return
 		end
 
@@ -33,6 +33,7 @@ function simulate_core(self,idx,n_runs)
 			movefile([do_folder this_job],[doing_folder this_job])
 		catch
 			pause(1)
+			continue
 		end
 
 		% load the file 
@@ -64,10 +65,9 @@ function simulate_core(self,idx,n_runs)
 
 			% map the outputs to the data structures
 			if ok
-
 				if ~exist('data','var')
 					% create placeholders
-					for j = 1:length(outputs)
+					for j = length(outputs):-1:1
 						data{j} = NaN(size(vectorise(outputs{j}),1),size(this_params,2));
 					end
 				end
@@ -79,16 +79,32 @@ function simulate_core(self,idx,n_runs)
 
 		end
 
-
-		% save the data 
-		save([done_folder this_job '.data'],'data')
-
-		% move the job into the done folder
-		try
-			movefile([doing_folder this_job],[done_folder this_job])
-		catch
+		% some defensive measures to make sure that data
+		% and params are aligned 
+		ok = true;
+		for j = 1:length(data)
+			if size(data{j},2) ~= size(this_params,2)
+				ok = false;
+			end
 		end
 
+		if ok
+			% all OK, can save the data, move on
+			save([done_folder this_job '.data'],'data')
+
+			% move the job into the done folder
+			movefile([doing_folder this_job],[done_folder this_job])
+
+		else
+			% not OK. give up. 
+			disp('Something went wrong with this job:')
+			disp(this_job)
+			disp('This job will remain stuck in the doing queue')
+		end
+
+
+
+		clear data this_params param_idx param_names xhash
 		n_runs = n_runs - 1;
 	end
 	
