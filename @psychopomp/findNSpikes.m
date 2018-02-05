@@ -19,10 +19,12 @@ end
 
 spiketimes = NaN(n_spikes,1);
 [ons, offs] = computeOnsOffs(V > on_off_thresh);
-stop_here = min([length(ons) n_spikes]);
-if stop_here == 0
+if isempty(offs) || isempty(ons)
 	return
 end
+
+stop_here = min([length(ons) n_spikes]);
+
 for j = 1:stop_here
 	[~,idx] = max(V(ons(j):offs(j)));
 	spiketimes(j) = ons(j) + idx;
