@@ -9,9 +9,9 @@
 %  
 
 function cleanup(self)
-	do_folder = [self.psychopomp_folder oss 'do' oss ];
-	doing_folder = [self.psychopomp_folder oss 'doing' oss ];
-	done_folder = [self.psychopomp_folder oss 'done' oss ];
+	do_folder = [self.psychopomp_folder filesep 'do' filesep ];
+	doing_folder = [self.psychopomp_folder filesep 'doing' filesep ];
+	done_folder = [self.psychopomp_folder filesep 'done' filesep ];
 
 	% remove all .ppp files
 	allfiles = dir([do_folder '*.ppp']);

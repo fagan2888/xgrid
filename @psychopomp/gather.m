@@ -38,7 +38,7 @@ function [all_data, all_params, all_param_idx] = gather(self)
 		end
 	end
 
-	done_folder = [self.psychopomp_folder oss 'done' oss ];
+	done_folder = [self.psychopomp_folder filesep 'done' filesep ];
 	job_files =  dir([done_folder '*.ppp']);
 	data_files =  dir([done_folder '*.ppp.data']);
 	assert(length(job_files) == length(data_files),'# of data files does not match # of job files')

@@ -34,6 +34,7 @@ x.compile;
 
 x.integrate;
 x.closed_loop = false;
+x.skip_hash_check = true;
 
 
 % in this example, we are going to vary the maximal conductances of the Acurrent and the slow calcium conductance in a grid
@@ -64,7 +65,7 @@ p.batchify(all_params,parameters_to_vary);
 p.sim_func = @psychopomp_test_func;
 
 tic 
-p.simulate(.1);
+p.simulate(1);
 wait(p.workers)
 t = toc;
 

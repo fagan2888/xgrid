@@ -19,8 +19,8 @@ function stop(self)
 	end
 
 	% move doing jobs back to queue
-	do_folder = [self.psychopomp_folder oss 'do' oss ];
-	doing_folder = [self.psychopomp_folder oss 'doing' oss ];
+	do_folder = [self.psychopomp_folder filesep 'do' filesep ];
+	doing_folder = [self.psychopomp_folder filesep 'doing' filesep ];
 
 	allfiles = dir([doing_folder '*.ppp']);
 	for i = 1:length(allfiles)

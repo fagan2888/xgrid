@@ -30,7 +30,7 @@ function simulate(self, stagger_time)
 		if strcmp(self.clusters(i).Name,'local')
 
 			% check that every job has the correct hash
-			do_folder = [self.psychopomp_folder oss 'do' oss ];
+			do_folder = [self.psychopomp_folder filesep 'do' filesep ];
 			allfiles = dir([do_folder '*.ppp']);
 			for j = 1:length(allfiles)
 				m = matfile(joinPath(allfiles(i).folder,allfiles(i).name));

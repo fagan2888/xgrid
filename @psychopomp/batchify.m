@@ -41,12 +41,12 @@ function batchify(self,params,param_names)
 		param_idx = 1:n_sims;
 		param_idx = param_idx(idx:z);
 		this_params = params(:,idx:z);
-		save([self.psychopomp_folder oss 'do' oss 'job_' oval(c) '.ppp'],'this_params','param_names','xhash','param_idx');
+		save([self.psychopomp_folder filesep 'do' filesep 'job_' oval(c) '.ppp'],'this_params','param_names','xhash','param_idx');
 		idx = z + 1; c = c + 1;
 	end
 
 	% now copy some of these files onto the remotes, if they exist
-	do_folder = [self.psychopomp_folder oss 'do' oss ];
+	do_folder = [self.psychopomp_folder filesep 'do' filesep ];
 	allfiles = dir([do_folder '*.ppp']);
 	n_total_jobs = length(allfiles);
 

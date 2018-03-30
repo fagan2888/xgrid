@@ -14,9 +14,9 @@ function simulate_core(self,idx,n_runs)
 	while n_runs > 0
 
 		% grab a job file and move it to doing 
-		do_folder = [self.psychopomp_folder oss 'do' oss ];
-		doing_folder = [self.psychopomp_folder oss 'doing' oss ];
-		done_folder = [self.psychopomp_folder oss 'done' oss ];
+		do_folder = [self.psychopomp_folder filesep 'do' filesep ];
+		doing_folder = [self.psychopomp_folder filesep 'doing' filesep ];
+		done_folder = [self.psychopomp_folder filesep 'done' filesep ];
 		free_jobs = dir([ do_folder '*.ppp']);
 
 		if isempty(free_jobs)
