@@ -10,15 +10,10 @@
 
 function [burst_period, n_spikes_per_burst, spike_times] = psychopomp_test_func(x)
 
-disp('Running sim func...')
-disp('Conductances:')
-round(x.getConductances('AB')')
-
 try
 
 	x.closed_loop = false;
 	x.reset;
-	x.skip_hash_check = true;
 
 	[V,Ca] = x.integrate; 
 

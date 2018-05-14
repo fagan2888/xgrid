@@ -17,7 +17,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		x@xolotl
 		sim_func@function_handle
 		n_func_outputs % how many outputs will the simulation function generate?
-		use_parallel = true
 		n_batches = 10 % per worker
 		verbosity = 1;
 
@@ -235,18 +234,16 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 			assert(length(value)==1,'Only one xololt object can be linked')
 			self.x = value;
-			% determine the parameter names we expect
-			n = self.x.compartment_names;
-			for i = 1:length(n)
-				eval([n{i} ' = self.x.(n{i});']);
-				eval( ['[~,these_names] = struct2vec(' n{i} ');']);
-				self.allowed_param_names = [self.allowed_param_names; these_names];
-			end
 
 
-			self.x.skip_hash_check = false;
+			self.x.skip_hash = false;
+			self.x.sha1hash;
+			self.x.skip_hash = true;
+
+			self.x.transpile;
+			self.x.compile;
+
 			self.xolotl_hash = self.x.hash;
-			self.x.skip_hash_check = true;
 
 			% also configure xolotl objects of all remotes
 			for i = 1:length(self.clusters)

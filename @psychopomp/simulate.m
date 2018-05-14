@@ -9,14 +9,13 @@
 %  
 % start the simulation on all cluster, local and remote
 
-function simulate(self, stagger_time)
+function simulate(self)
 
 	assert(~isempty(self.sim_func),'No sim function configured, refusing to start')
     
-    if nargin < 2
-        disp('No stagger time configured, setting to defaults')
-        stagger_time = 1;
-    end
+
+    stagger_time = 1;
+
 
 	% make sure there exists a linked binary
 	if isempty(self.x.linked_binary)

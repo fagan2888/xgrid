@@ -44,13 +44,11 @@ function simulate_core(self,idx,n_runs)
 		for i = 1:size(this_params,2)
 			% update params
 
-			for j = 1:length(param_names)
-				eval(['self.x.' param_names{j} ' = this_params(' mat2str(j),',' mat2str(i) ');'])
-			end
-
+			self.x.set(param_names,this_params(:,i))
 
 			% run the model
 			ok = false;
+
 			try
 
 				[outputs{1:length(argOutNames(self.sim_func))}] = self.sim_func(self.x);
