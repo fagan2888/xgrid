@@ -19,7 +19,7 @@ try
 
 	transient_cutoff = floor(length(V)/2);
 	Ca = Ca(transient_cutoff:end,1);
-	V = V(transient_cutoff:end);
+	V = V(transient_cutoff:end,1);
 
 	burst_metrics = psychopomp.findBurstMetrics(V,Ca);
 

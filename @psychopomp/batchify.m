@@ -14,11 +14,9 @@ function batchify(self,params,param_names)
 	% check that param names resolve correctly -- we do 
 	% so by attempting to read this property for each param name
 	for i = 1:length(param_names)
-		try
-			eval(['temp = self.x.' param_names{i} ';']);
-		catch
-			error('Parameter names did not resolve correctly')
-		end
+
+		temp = self.x.get(param_names{i});
+		assert(~isempty(temp),'Parameter names did not resolve correctly')
 	end
 
 	n_sims = size(params,2);
