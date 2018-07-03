@@ -8,7 +8,7 @@
 % outputs, and returning data that matches the dimensions 
 % specified in the data_sizes property 
 
-function [burst_period, n_spikes_per_burst, spike_times] = psychopomp_test_func(x)
+function [burst_period, n_spikes_per_burst, spike_times] = psychopomp_test_func(x,~,~)
 
 try
 

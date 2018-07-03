@@ -54,7 +54,6 @@ if exist('~/.psych/com.mat','file') == 2
 		save('~/.psych/com_response.mat','response')
 
 	catch err
-		keyboard
 		disp(err)
 		response = 1;
 		save('~/.psych/com_response.mat','response')
