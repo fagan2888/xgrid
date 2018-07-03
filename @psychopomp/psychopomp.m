@@ -260,7 +260,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			addpath('~/.psych')
 
 
-			
+			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
 			start(self.daemon_handle);
 
 			% make sure the parpool never shuts down 
