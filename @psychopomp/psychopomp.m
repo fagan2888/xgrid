@@ -190,6 +190,11 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		end
 
 		function self = set.sim_func(self,value)
+
+			% check if it exists
+			assert(isa(value,'function_handle'),'Sim func must be a function handle')
+			assert(exist(func2str(value),'file')==2,'Sim func could not be located');
+
 			self.sim_func = value;
 
 			% if there are remotes, copy this function onto the remotes, and ask them to configure it
