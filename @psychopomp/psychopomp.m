@@ -30,7 +30,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		n_sims
 		xolotl_hash
 		current_pool@parallel.Pool
-		daemon_handle
+		daemon_handle@timer
 	end
 
 	properties (Access = protected)
@@ -187,6 +187,19 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				self.addCluster(varargin{i});
 			end
 
+			% check for daemon, and add it
+			% check if daemon is already running
+			t = timerfindall;
+			for i = 1:length(t)
+	
+				if (any(strfind(func2str(t(i).TimerFcn),'psychopomp')))
+					self.daemon_handle = t;
+					disp('Daemon running; binding to it...')
+					break
+				end
+			end
+
+
 		end
 
 		function self = set.sim_func(self,value)
@@ -213,16 +226,37 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		end
 
 
-		function daemonize(self)
-			if exist('~/.psych/daemon_running','file')
-				error('Daemon is already running. Refusing to start. To force start, delete "~/.psych/daemon_running"')
+		function stopDaemon(self)
+
+			stop(self.daemon_handle);
+			delete(self.daemon_handle);
+
+		end % end stopDaemon
+
+		function daemonize(self, force)
+			
+			if nargin < 2
+				force = "meh";
 			end
+
+			% check if daemon is already running
+			t = timerfindall;
+			for i = 1:length(t)
+				if nargin > 1 && strcmp(force,'--force')
+					if any(strfind(func2str(t(i).TimerFcn),'psychopomp'))
+						stop(t(i))
+						delete(t(i))
+					end
+				else
+					
+					assert(~any(strfind(func2str(t(i).TimerFcn),'psychopomp')),'psychopomp daemon already exists. To restart daemon, call this method with the "--force" option')
+				end
+			end
+
 
 			% add the ~/.psych folder to the path so that sim functions can be resolved
 			addpath('~/.psych')
 
-			system('touch ~/.psych/daemon_running')
-			pause(3)
 
 			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
 			start(self.daemon_handle);

@@ -34,11 +34,4 @@ function stop(self)
 			self.tellRemote(self.clusters(i).Name,'stop;')
 		end
 	end
-
-	% if the daemon is running, stop it
-	if ~isempty(self.daemon_handle)
-		stop(self.daemon_handle)
-		delete('~/.psych/daemon_running')
-	end
-
 end
