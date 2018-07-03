@@ -22,8 +22,6 @@ x.AB.add('liu/Kd','gbar',@() 38.31/x.AB.A,'E',-80);
 x.AB.add('liu/HCurrent','gbar',@() .6343/x.AB.A,'E',-20);
 x.AB.add('Leak','gbar',@() 0.0622/x.AB.A,'E',-50);
 
-x.replicate('AB',2);
-
 x.dt = 50e-3;
 x.t_end = 10e3;
 
@@ -47,7 +45,14 @@ for i = 1:length(g_CaS_space)
 end
 
 clear p 
-p = psychopomp;
+
+% do we want to run it locally or on a remote?
+% make sure you have a variable called
+% cluster_name in your workspace
+% it can be "local" for a local run, or
+% should be a resolvable name of a computer
+
+p = psychopomp(cluster_name);
 p.cleanup;
 p.n_batches = 2;
 p.x = x;
@@ -56,12 +61,12 @@ p.batchify(all_params,parameters_to_vary);
 % configure the simulation type, and the analysis functions 
 p.sim_func = @psychopomp_test_func;
 
-return
 
 tic 
 p.simulate;
 wait(p.workers)
 t = toc;
+disp(['Finished in ' t ' seconds. Total speed = ' mat2str((length(all_params)*x.t_end*1e-3)/t)])
 
 
 [all_data,all_params,all_param_idx] = p.gather;

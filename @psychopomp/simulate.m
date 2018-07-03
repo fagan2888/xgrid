@@ -53,7 +53,7 @@ function simulate(self)
 			% it's a remote cluster. ask the remote (nicely)
 			% to start the simulations
 
-			command = ['simulate(' mat2str(stagger_time) ');'];
+			command = ['simulate();'];
 			self.tellRemote(self.clusters(i).Name,command);
 
 
