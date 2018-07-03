@@ -165,6 +165,8 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				end
 			end
 
+			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
+
 			% create do, doing, done folders if they don't exist
 			if exist(joinPath(self.psychopomp_folder,'do'),'file') == 7
 			else
@@ -193,7 +195,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			for i = 1:length(t)
 	
 				if (any(strfind(func2str(t(i).TimerFcn),'psychopomp')))
-					self.daemon_handle = t;
+					self.daemon_handle = t(i);
 					disp('Daemon running; binding to it...')
 					break
 				end
@@ -258,7 +260,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			addpath('~/.psych')
 
 
-			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
+			
 			start(self.daemon_handle);
 
 			% make sure the parpool never shuts down 
@@ -275,6 +277,10 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			self.x = value;
 
 
+			if strcmp(self.daemon_handle.running,'on')
+				self.x.rebase;
+			end
+
 			self.x.skip_hash = false;
 			self.x.md5hash;
 			self.x.skip_hash = true;
@@ -289,7 +295,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				if strcmp(self.clusters(i).Name,'local')
 					continue
 				end
-				command = 'x = value; self.x.rebase; self.x.transpile; self.x.compile;';
+				command = 'x = value';
 				self.tellRemote(self.clusters(i).Name,command,value);
 			end
 
