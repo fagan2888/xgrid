@@ -24,6 +24,7 @@ end
 
 % delete responses on the remote
 [e,o] = system(['ssh ' cluster_name ' " rm ~/.psych/com_response.mat " ']);
+
 if e ~= 0 
 	if any(strfind(o,'No such file or directory'))
 	else
@@ -34,6 +35,7 @@ end
 
 save('~/.psych/com.mat','command','value');
 [e,o] = system(['scp ~/.psych/com.mat ' cluster_name ':~/.psych/']);
+
 if e ~=0 
 	disp(o)
 	error('could not copy command to remote')

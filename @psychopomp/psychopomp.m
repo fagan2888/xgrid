@@ -165,7 +165,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				end
 			end
 
-			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
 
 			% create do, doing, done folders if they don't exist
 			if exist(joinPath(self.psychopomp_folder,'do'),'file') == 7
@@ -189,17 +188,18 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				self.addCluster(varargin{i});
 			end
 
-			% check for daemon, and add it
-			% check if daemon is already running
+			% delete all old timers
 			t = timerfindall;
 			for i = 1:length(t)
 	
 				if (any(strfind(func2str(t(i).TimerFcn),'psychopomp')))
-					self.daemon_handle = t(i);
-					disp('Daemon running; binding to it...')
-					break
+					stop(t(i))
+					delete(t(i))
+					
 				end
 			end
+
+			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
 
 
 		end

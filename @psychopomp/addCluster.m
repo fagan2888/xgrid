@@ -28,10 +28,11 @@ function addCluster(self,cluster_name)
 
 		% check if we can ping the cluster
 		fprintf(['\nPinging ' cluster_name '...'])
+		busyPrinter.start;
 		[e,~]=system(['ping ' cluster_name ' -c 1']);
+		busyPrinter.stop;
 
 		assert(e == 0, 'Could not contact server -- check that you have the right name and that it is reachable')
-		cprintf('Green','OK')
 
 		% check we can SSH into the server, and that psychopomp is running on that server
 
