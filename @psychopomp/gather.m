@@ -32,9 +32,9 @@ for i = 1:length(self.clusters)
 	if strcmp(self.clusters(i).Name,'local')
 	else
 		disp(['Copying data from ' self.clusters(i).Name])
-		busyPrinter.start
+
 		[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/*.ppp ~/.psych/done/' ]);
-		busyPrinter.stop
+
 		assert(e == 0,' Error copying files from remote')
 		[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/*.ppp.data ~/.psych/done/' ]);
 		assert(e == 0,' Error copying files from remote')
