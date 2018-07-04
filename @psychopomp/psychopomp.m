@@ -31,6 +31,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		xolotl_hash
 		current_pool@parallel.Pool
 		daemon_handle@timer
+		controller_handle
 	end
 
 	properties (Access = protected)
@@ -60,25 +61,29 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 					xhash = self.xolotl_hash;
 					status = '';
 				else
-					plog(i) = self.getRemoteState(i);
+					
+
+					if isfield(self.clusters(i),'plog')
+						return
+					end
 
 					cluster_name_disp = self.clusters(i).Name;
 					cluster_name_disp = flstring(cluster_name_disp,12);
-					n_do = plog(i).n_do; n_doing = plog(i).n_doing; n_done = plog(i).n_done;
-					xhash = plog(i).xolotl_hash;
+					n_do = self.clusters(i).plog.n_do; n_doing = self.clusters(i).plog.n_doing; n_done = self.clusters(i).plog.n_done;
+					xhash = self.clusters(i).plog.xolotl_hash;
 					% check that the log isn't stale
-					if etime(datevec(now),datevec(plog(i).last_updated)) < 10
+					if etime(datevec(now),datevec(self.clusters(i).plog.last_updated)) < 10
 						status = 'OK';
 					else
-						status = 'DEAD';
+						status = 'STALE';
 					end
 
 					% copy worker info onto local structure
 					self.clusters(i).workers = [];
-					if isfield(plog(i),'worker_diary')
-						for j = 1:length(plog(i).worker_diary)
-							self.clusters(i).workers(j).Diary = plog(i).worker_diary{j};
-							self.clusters(i).workers(j).State = plog(i).worker_state{j};
+					if isfield(self.clusters(i).plog,'worker_diary')
+						for j = 1:length(self.clusters(i).plog.worker_diary)
+							self.clusters(i).workers(j).Diary = self.clusters(i).plog.worker_diary{j};
+							self.clusters(i).workers(j).State = self.clusters(i).plog.worker_state{j};
 						end
 					end
 				end
@@ -90,8 +95,21 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			end
 
             % display the state of all the workers, on all nodes
+            url = ['matlab:' inputname(1) '.showWorkerStates'];
+            fprintf(['\n<a href="' url '">show worker states</a> \n'])
 
-            fprintf('\n\nCluster      Worker  State      Output\n')
+     
+
+        end % end displayScalarObject
+   end % end protected methods
+
+	methods
+
+
+
+		function showWorkerStates(self)
+
+			fprintf('\n\nCluster      Worker  State      Output\n')
 			fprintf('---------------------------------------------------------------\n')
 
             for i = 1:length(self.clusters)
@@ -118,12 +136,12 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             			fprintf([cluster_name  ' ' wid ' ' ws ' ' wd  '\n'])
             		end
             	else
-            		if isfield(plog,'worker_diary')
-	            		for j = 1:length(plog(i).worker_diary)
+            		if isfield(self.clusters(i).plog,'worker_diary')
+	            		for j = 1:length(self.clusters(i).plog.worker_diary)
 	            			cluster_name = flstring(self.clusters(i).Name,12);
 	            			wid = flstring(oval(j),7);
-	            			ws = flstring(plog(i).worker_state{j},10);
-	            			wd = plog(i).worker_diary{j};
+	            			ws = flstring(self.clusters(i).plog.worker_state{j},10);
+	            			wd = self.clusters(i).plog.worker_diary{j};
 	            			if ~isempty(wd)
 		            			try
 			            			wd = splitlines(wd);
@@ -145,11 +163,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             	end
             end
 
-        end % end displayScalarObject
-   end % end protected methods
-
-	methods
-
+		end % end showWorkerStates
 
 
 		function self = psychopomp(varargin)
@@ -183,6 +197,9 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			if nargin == 0
 				self.addCluster('local')
 			end
+
+
+			self.controller_handle = parfeval(@self.masterController,0,0);
 
 			for i = 1:length(varargin)
 				self.addCluster(varargin{i});
@@ -264,8 +281,11 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			start(self.daemon_handle);
 
 			% make sure the parpool never shuts down 
-			pool = gcp('nocreate');
-			pool.IdleTimeout = Inf;
+			try
+				pool = gcp('nocreate');
+				pool.IdleTimeout = Inf;
+			catch
+			end
 
 		end
 

@@ -8,12 +8,11 @@
 %    |_|        |___/                 |_|                   |_|
 %  
 
-function plog = getRemoteState(self,idx)
+function getRemoteState(self,idx)
 
-	self.tellRemote(self.clusters(idx).Name,'printLog;');
+disp('Asking remote to pring log...')
+self.tellRemote(self.clusters(idx).Name,'printLog;');
 
-	[e,~] = system(['scp ' self.clusters(idx).Name ':~/.psych/log.mat ' self.psychopomp_folder '/' self.clusters(idx).Name '.log.mat']);
+disp('Getting log from remote...')
+[e,~] = system(['scp ' self.clusters(idx).Name ':~/.psych/log.mat ' self.psychopomp_folder '/' self.clusters(idx).Name '.log.mat']);
 
-	% load the log 
-	load([self.psychopomp_folder '/' self.clusters(idx).Name '.log.mat']);
-end
