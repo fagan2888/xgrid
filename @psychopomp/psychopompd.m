@@ -19,7 +19,12 @@
 function psychopompd(self,~,~)
 
 
+
+
 if length(self.clusters) == 1 && strcmp(self.clusters.Name,'local')
+
+	% always print a log 
+	self.printLog;
 
 	% run any commands specified by master
 	response = 0;
