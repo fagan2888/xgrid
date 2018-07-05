@@ -41,6 +41,8 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 
 	methods (Access = protected)
+
+
         function displayScalarObject(self)
             url = 'https://github.com/sg-s/psychopomp/';
             fprintf(['\b\b\b\b\b\b<a href="' url '">psychopomp</a> '])
@@ -52,7 +54,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
             	end
             end
 
-			fprintf('\n\nCluster      Status  Queued  Running  Done  xolotl#\n')
+			fprintf('\n\nCluster      Delay   Queued  Running  Done  xolotl#\n')
 			fprintf('---------------------------------------------------------------\n')
 			for i = length(self.clusters):-1:1
 				if strcmp(self.clusters(i).Name,'local')
@@ -63,7 +65,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				else
 					
 
-					if isfield(self.clusters(i),'plog')
+					if ~isfield(self.clusters(i),'plog')
 						return
 					end
 
@@ -73,7 +75,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 					xhash = self.clusters(i).plog.xolotl_hash;
 					% check that the log isn't stale
 					if etime(datevec(now),datevec(self.clusters(i).plog.last_updated)) < 10
-						status = 'OK';
+						status = [oval(etime(datevec(now),datevec(self.clusters(i).plog.last_updated))) 's'];
 					else
 						status = 'STALE';
 					end
@@ -104,6 +106,8 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
    end % end protected methods
 
 	methods
+
+
 
 
 
@@ -180,6 +184,21 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			end
 
 
+			% delete all old timers
+			t = timerfindall;
+			for i = 1:length(t)
+	
+				if (any(strfind(func2str(t(i).TimerFcn),'psychopomp')))
+					stop(t(i))
+					delete(t(i))
+					
+				end
+			end
+
+			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
+
+
+
 			% create do, doing, done folders if they don't exist
 			if exist(joinPath(self.psychopomp_folder,'do'),'file') == 7
 			else
@@ -205,19 +224,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				self.addCluster(varargin{i});
 			end
 
-			% delete all old timers
-			t = timerfindall;
-			for i = 1:length(t)
-	
-				if (any(strfind(func2str(t(i).TimerFcn),'psychopomp')))
-					stop(t(i))
-					delete(t(i))
-					
-				end
-			end
-
-			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
-
+			
 
 		end
 

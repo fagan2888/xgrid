@@ -36,9 +36,13 @@ else
 
 	assert(e == 0, 'Could not contact server -- check that you have the right name and that it is reachable')
 
-	% check we can SSH into the server, and that psychopomp is running on that server
 
-	self.tellRemote(cluster_name,'printLog;');
+	% since this is being run as a controller, slow down the daemon
+	stop(self.daemon_handle)
+	self.daemon_handle.Period = 5;
+	start(self.daemon_handle)
+
+	% check we can SSH into the server, and that psychopomp is running on that server
 
 	fprintf('\nCopying log...')
 	[e,~] = system(['scp ' cluster_name ':~/.psych/log.mat ' self.psychopomp_folder '/' cluster_name '.log.mat']);

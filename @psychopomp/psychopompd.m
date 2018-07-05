@@ -19,7 +19,19 @@
 function psychopompd(self,~,~)
 
 
+% check if there is a pyschopomp object in the ws,
+% otherwise kill itself
 
+vars = evalin('base','whos');
+if ~any(strcmp({vars.class},'psychopomp'))
+	d = dbstack;
+	if strcmp(d(end).name,'psychopomp.psychopomp')
+		return
+	end
+	disp('Stopping daemon...')
+	stop(self.daemon_handle)
+	delete(self.daemon_handle)
+end
 
 if length(self.clusters) == 1 && strcmp(self.clusters.Name,'local')
 
