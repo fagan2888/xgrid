@@ -33,10 +33,8 @@ for i = 1:length(self.clusters)
 	else
 		disp(['Copying data from ' self.clusters(i).Name])
 
-		[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/*.ppp ~/.psych/done/' ]);
+		[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/*.ppp*  ~/.psych/done/' ]);
 
-		assert(e == 0,' Error copying files from remote')
-		[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/*.ppp.data ~/.psych/done/' ]);
 		assert(e == 0,' Error copying files from remote')
 	end
 end
