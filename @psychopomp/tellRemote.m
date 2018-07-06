@@ -34,6 +34,8 @@ end
 
 
 save('~/.psych/com.mat','command','value');
+
+
 [e,o] = system(['scp ~/.psych/com.mat ' cluster_name ':~/.psych/']);
 
 if e ~=0 

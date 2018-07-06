@@ -10,8 +10,6 @@
 
 function getRemoteState(self,idx)
 
-% disp('Asking remote to pring log...')
-% self.tellRemote(self.clusters(idx).Name,'printLog;');
 
 disp('Getting log from remote...')
 [e,~] = system(['scp ' self.clusters(idx).Name ':~/.psych/log.mat ' self.psychopomp_folder '/' self.clusters(idx).Name '.log.mat']);

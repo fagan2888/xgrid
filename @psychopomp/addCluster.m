@@ -36,6 +36,8 @@ else
 
 	assert(e == 0, 'Could not contact server -- check that you have the right name and that it is reachable')
 
+	cprintf('Green','OK')
+
 
 	% since this is being run as a controller, slow down the daemon
 	stop(self.daemon_handle)
@@ -48,9 +50,14 @@ else
 	[e,~] = system(['scp ' cluster_name ':~/.psych/log.mat ' self.psychopomp_folder '/' cluster_name '.log.mat']);
 
 	if e == 0
-		cprintf('Green','OK')
+		cprintf('Green','OK\n')
 		% load the log 	
-		load([self.psychopomp_folder '/' cluster_name '.log.mat']);
+		try
+			load([self.psychopomp_folder '/' cluster_name '.log.mat']);
+		catch
+			pause(.5)
+			load([self.psychopomp_folder '/' cluster_name '.log.mat']);
+		end
 	else
 		error('Could not connect to remote. error copying log from remote')
 	end
@@ -60,11 +67,23 @@ else
 		self.clusters(1).Name = cluster_name;
 		self.clusters(1).nthreads = plog.nthreads;
 
+		try
+			self.clusters(1).plog = plog;
+		catch
+		end
+
 	else
 		idx = length(self.clusters) + 1;
 		self.clusters(idx).Name = cluster_name;
 		self.clusters(idx).nthreads = plog.nthreads;
+
+		try
+			self.clusters(idx).plog = plog;
+		catch
+		end
 	end
+
+
 
 
 end

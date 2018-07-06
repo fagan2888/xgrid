@@ -33,7 +33,7 @@ if ~any(strcmp({vars.class},'psychopomp'))
 	delete(self.daemon_handle)
 end
 
-if length(self.clusters) == 1 && strcmp(self.clusters.Name,'local')
+if length(self.clusters) == 1 & strcmp(self.clusters.Name,'local')
 
 	% always print a log 
 	self.printLog;
