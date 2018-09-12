@@ -40,6 +40,9 @@ function simulate_core(self,idx,n_runs)
 		load([doing_folder this_job],'-mat')
 
 
+		% check that the hash matches
+		assert(strcmp(xhash,self.x_hash),'Hashes dont match')
+
 		
 		for i = 1:size(this_params,2)
 			% update params
