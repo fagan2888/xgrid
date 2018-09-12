@@ -32,7 +32,7 @@ function simulate(self)
 			do_folder = [self.psychopomp_folder filesep 'do' filesep ];
 			allfiles = dir([do_folder '*.ppp']);
 			for j = 1:length(allfiles)
-				m = matfile(joinPath(allfiles(i).folder,allfiles(i).name));
+				m = matfile(joinPath(allfiles(j).folder,allfiles(j).name));
 				assert(strcmp(self.xolotl_hash,m.xhash),'At least one job didnt match the hash of the currently configured Xolotl object')
 			end
 
