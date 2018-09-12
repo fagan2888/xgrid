@@ -31,6 +31,7 @@ if ~any(strcmp({vars.class},'psychopomp'))
 	disp('Stopping daemon...')
 	stop(self.daemon_handle)
 	delete(self.daemon_handle)
+	return
 end
 
 

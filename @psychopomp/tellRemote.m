@@ -32,9 +32,6 @@ if e ~= 0
 	end
 end
 
-keyboard
-
-
 save('~/.psych/com.mat','command','value');
 
 

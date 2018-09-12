@@ -210,7 +210,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 					continue
 				end
 				command = 'x = value';
-				self.tellRemote(self.clusters(i).Name,command,value);
+				self.tellRemote(self.clusters(i).Name,command);
 			end
 
 		end % end set xolotl object
