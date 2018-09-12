@@ -29,9 +29,11 @@ function simulate(self)
 		if strcmp(self.clusters(i).Name,'local')
 
 			% check that every job has the correct hash
+			disp('Checking that every job has the same hash...')
 			do_folder = [self.psychopomp_folder filesep 'do' filesep ];
 			allfiles = dir([do_folder '*.ppp']);
 			for j = 1:length(allfiles)
+				textbar(j,length(allfiles))
 				m = matfile(joinPath(allfiles(j).folder,allfiles(j).name));
 				assert(strcmp(self.xolotl_hash,m.xhash),'At least one job didnt match the hash of the currently configured Xolotl object')
 			end
