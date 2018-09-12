@@ -128,6 +128,9 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				end
 			end
 
+			% wipe all old C++ files in .psych
+			system('rm ~/.psych/*.hpp');
+
 			self.daemonize;
 
 			% create do, doing, done folders if they don't exist
@@ -190,10 +193,9 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			assert(length(value)==1,'Only one xololt object can be linked')
 			self.x = value;
 
-
-			if ~self.is_master
-				self.x.rebase;
-			end
+			% reset the paths cache
+			delete(which('paths.cpplab'));
+			self.x.rebase;			
 
 			self.x.skip_hash = false;
 			self.x.md5hash;
@@ -209,6 +211,18 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				if strcmp(self.clusters(i).Name,'local')
 					continue
 				end
+
+				% copy over all C++ files onto the remote
+				copy_these = self.x.generateHeaders;
+				disp('Copying C++ files to remote...')
+				for j = 2:length(copy_these)
+					if isempty(copy_these{j})
+						continue
+					end
+					[e,~]=system(['scp ' copy_these{j} ' ' self.clusters(i).Name ':~/.psych/']);
+					assert(e == 0,['Error while copying ' copy_these{j}])
+				end
+
 				command = 'x = value';
 				self.tellRemote(self.clusters(i).Name,command,value);
 			end
