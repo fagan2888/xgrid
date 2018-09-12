@@ -11,7 +11,7 @@
 % tells the remote to do something, and waits till it gets an OK
 % or times out
 
-function [status] = tellRemote(self,cluster_name,command)
+function [status] = tellRemote(self,cluster_name,command,value)
 
 if nargin < 4
 	value = 0;
