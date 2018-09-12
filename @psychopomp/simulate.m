@@ -14,9 +14,6 @@ function simulate(self)
 	assert(~isempty(self.sim_func),'No sim function configured, refusing to start')
     
 
-    stagger_time = 1;
-
-
 	% make sure there exists a linked binary
 	if isempty(self.x.linked_binary)
 		self.x.skip_hash_check = false;
@@ -45,9 +42,8 @@ function simulate(self)
 			end
 
 			for j = self.num_workers:-1:1
-				F(j) = parfeval(@self.simulate_core,0,i,Inf);
+				F(j) = parfeval(@self.simulate_core,0,j,Inf);
 				textbar(self.num_workers - j + 1,self.num_workers)
-				pause(stagger_time)
 			end
 			self.workers = F;
 

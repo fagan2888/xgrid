@@ -11,6 +11,10 @@
 
 function simulate_core(self,idx,n_runs)
 
+	disp(['Worker ' mat2str(idx) ' booting up, waiting for start...'])
+	pause(idx*self.stagger_time);
+	disp(['Worker ' mat2str(idx) ' starting...'])
+
 	while n_runs > 0
 
 		% grab a job file and move it to doing 
@@ -41,7 +45,7 @@ function simulate_core(self,idx,n_runs)
 
 
 		% check that the hash matches
-		assert(strcmp(xhash,self.x_hash),'Hashes dont match')
+		assert(strcmp(xhash,self.xolotl_hash),'Hashes dont match')
 
 		
 		for i = 1:size(this_params,2)

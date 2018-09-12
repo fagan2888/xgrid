@@ -21,6 +21,8 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		verbosity = 1;
 
 		clusters
+
+		stagger_time = 1 % seconds
 	end % end props
 
 	properties (SetAccess = protected)
