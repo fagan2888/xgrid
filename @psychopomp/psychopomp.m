@@ -259,23 +259,15 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 		end % end stopDaemon
 
-		function daemonize(self, force)
+		function daemonize(self)
 			
-			if nargin < 2
-				force = "meh";
-			end
 
-			% check if daemon is already running
+			% stop all existing timers
 			t = timerfindall;
 			for i = 1:length(t)
-				if nargin > 1 && strcmp(force,'--force')
-					if any(strfind(func2str(t(i).TimerFcn),'psychopomp'))
-						stop(t(i))
-						delete(t(i))
-					end
-				else
-					
-					assert(~any(strfind(func2str(t(i).TimerFcn),'psychopomp')),'psychopomp daemon already exists. To restart daemon, call this method with the "--force" option')
+				if any(strfind(func2str(t(i).TimerFcn),'psychopomp'))
+					stop(t(i))
+					delete(t(i))
 				end
 			end
 
