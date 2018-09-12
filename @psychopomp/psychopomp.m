@@ -158,9 +158,9 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				self.addCluster(varargin{i});
 			end
 
-			
 
 		end
+
 
 		function self = set.sim_func(self,value)
 
@@ -193,8 +193,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			assert(length(value)==1,'Only one xololt object can be linked')
 			self.x = value;
 
-			% reset the paths cache
-			delete(which('paths.cpplab'));
 			self.x.rebase;			
 
 			self.x.skip_hash = false;
