@@ -26,6 +26,18 @@ if strcmp(cluster_name,'local')
 		self.clusters(idx).Name = cluster_name;
 		self.clusters(idx).nthreads = self.num_workers;
 	end
+
+
+	% check if a benchmark exists
+	try
+		load('~/.psych/benchmark.mat','speed')
+		self.speed = speed;
+	catch
+		disp('No benchmark data found. Running benchmarks. This will occur only once.')
+		self.benchmark;
+	end
+
+
 else
 
 	% check if we can ping the cluster

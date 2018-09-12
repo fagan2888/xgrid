@@ -2,16 +2,16 @@
 % this simulates 100 different neurons 
 
 
-% tests a neuron that reproduces Fig 3 in Tim's paper
 vol = 0.0628; % this can be anything, doesn't matter
 f = 1.496; % uM/nA
 tau_Ca = 200;
 F = 96485; % Faraday constant in SI units
 phi = (2*f*F*vol)/tau_Ca;
-Ca_target = 0; % used only when we add in homeostatic control
 
 x = xolotl;
-x.add('compartment','AB','Cm',10,'A',0.0628,'vol',vol,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tau_Ca',tau_Ca,'Ca_target',Ca_target);
+x.add('compartment','AB','A',0.0628,'vol',vol);
+x.AB.add('CalciumMech2','phi',phi);
+
 
 x.AB.add('liu/NaV','gbar',@() 115/x.AB.A,'E',30);
 x.AB.add('liu/CaT','gbar',@() 1.44/x.AB.A,'E',30);
@@ -21,7 +21,6 @@ x.AB.add('liu/KCa','gbar',@() 61.54/x.AB.A,'E',-80);
 x.AB.add('liu/Kd','gbar',@() 38.31/x.AB.A,'E',-80);
 x.AB.add('liu/HCurrent','gbar',@() .6343/x.AB.A,'E',-20);
 x.AB.add('Leak','gbar',@() 0.0622/x.AB.A,'E',-50);
-
 x.dt = 50e-3;
 x.t_end = 10e3;
 
@@ -44,15 +43,12 @@ for i = 1:length(g_CaS_space)
 	end
 end
 
-clear p 
+if exist('cluster_name','var')
+	p = psychopomp(cluster_name);
+else
+	p = psychopomp();
+end
 
-% do we want to run it locally or on a remote?
-% make sure you have a variable called
-% cluster_name in your workspace
-% it can be "local" for a local run, or
-% should be a resolvable name of a computer
-
-p = psychopomp(cluster_name);
 p.cleanup;
 p.n_batches = 2;
 p.x = x;
@@ -61,12 +57,11 @@ p.batchify(all_params,parameters_to_vary);
 % configure the simulation type, and the analysis functions 
 p.sim_func = @psychopomp_test_func;
 
-
 tic 
 p.simulate;
 wait(p.workers)
 t = toc;
-disp(['Finished in ' t ' seconds. Total speed = ' mat2str((length(all_params)*x.t_end*1e-3)/t)])
+disp(['Finished in ' mat2str(t) ' seconds. Total speed = ' mat2str((length(all_params)*x.t_end*1e-3)/t)])
 
 
 [all_data,all_params,all_param_idx] = p.gather;
@@ -79,10 +74,10 @@ spiketimes = all_data{3};
 BP_matrix = NaN(length(g_CaS_space),length(g_A_space));
 NS_matrix = NaN(length(g_CaS_space),length(g_A_space));
 for i = 1:length(all_params)
-	x = find(all_params(1,i) == g_CaS_space);
+	xx = find(all_params(1,i) == g_CaS_space);
 	y = find(all_params(2,i) == g_A_space);
-	BP_matrix(x,y) = burst_periods(i);
-	NS_matrix(x,y) = n_spikes_per_burst(i);
+	BP_matrix(xx,y) = burst_periods(i);
+	NS_matrix(xx,y) = n_spikes_per_burst(i);
 end
 BP_matrix(BP_matrix<0) = NaN;
 NS_matrix(NS_matrix<0) = 0;

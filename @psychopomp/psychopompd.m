@@ -25,7 +25,7 @@ function psychopompd(self,~,~)
 vars = evalin('base','whos');
 if ~any(strcmp({vars.class},'psychopomp'))
 	d = dbstack;
-	if strcmp(d(end).name,'psychopomp.psychopomp')
+	if any(strcmp({d.name},'psychopomp.psychopomp'))
 		return
 	end
 	disp('Stopping daemon...')
@@ -33,10 +33,32 @@ if ~any(strcmp({vars.class},'psychopomp'))
 	delete(self.daemon_handle)
 end
 
-if length(self.clusters) == 1 & strcmp(self.clusters.Name,'local')
 
+
+if self.is_master
+	% this is run only if it's a controller
+	for i = 1:length(self.clusters)
+		if strcmp(self.clusters(i).Name,'local')
+			continue
+		end
+		parfeval(@self.getRemoteState,0,i);
+
+		% load the log 
+		load([self.psychopomp_folder '/' self.clusters(i).Name '.log.mat']);
+
+		try
+			self.clusters(i).plog = plog;
+		catch
+		end
+
+	end
+
+else
+
+	% running as slave 
 	% always print a log 
 	self.printLog;
+
 
 	% run any commands specified by master
 	response = 0;
@@ -48,17 +70,10 @@ if length(self.clusters) == 1 & strcmp(self.clusters.Name,'local')
 			delete('~/.psych/com_response.mat')
 		end
 
-
 		try
-
 			load('~/.psych/com.mat')
 			delete('~/.psych/com.mat')
-
-
 			disp(['Running command ' command])
-
-
-
 		catch err
 			disp(err)
 			response = 1;
@@ -66,10 +81,8 @@ if length(self.clusters) == 1 & strcmp(self.clusters.Name,'local')
 		end
 
 		try
-
 			eval(['self.' command])
 			disp('Command completely successfully!')
-
 			save('~/.psych/com_response.mat','response')
 
 		catch err
@@ -78,26 +91,6 @@ if length(self.clusters) == 1 & strcmp(self.clusters.Name,'local')
 			save('~/.psych/com_response.mat','response')
 		end
 
-	end
-
-	return
-
-end
-
-
-% this is run only if it's a controller
-for i = 1:length(self.clusters)
-	if strcmp(self.clusters(i).Name,'local')
-		continue
-	end
-	parfeval(@self.getRemoteState,0,i);
-
-	% load the log 
-	load([self.psychopomp_folder '/' self.clusters(i).Name '.log.mat']);
-
-	try
-		self.clusters(i).plog = plog;
-	catch
 	end
 
 end

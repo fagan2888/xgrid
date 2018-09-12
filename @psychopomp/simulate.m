@@ -53,6 +53,8 @@ function simulate(self)
 			% it's a remote cluster. ask the remote (nicely)
 			% to start the simulations
 
+			keyboard
+
 			command = ['simulate();'];
 			self.tellRemote(self.clusters(i).Name,command);
 

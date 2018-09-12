@@ -7,6 +7,9 @@
 %    | |         __/ |                | |                   | |    
 %    |_|        |___/                 |_|                   |_|
 % 
+% stop
+% stops all simulations
+% does not stop the daemon
 
 function stop(self)
 	% stop workers on local machine

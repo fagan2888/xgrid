@@ -32,6 +32,9 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		current_pool@parallel.Pool
 		daemon_handle@timer
 		controller_handle
+
+		is_master = false;
+		speed 
 	end
 
 	properties (Access = protected)
@@ -110,71 +113,13 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 
 
-
-		function showWorkerStates(self)
-
-			fprintf('\n\nCluster      Worker  State      Output\n')
-			fprintf('---------------------------------------------------------------\n')
-
-            for i = 1:length(self.clusters)
-            	if strcmp(self.clusters(i).Name,'local')
-            		for j = 1:length(self.workers)
-            			cluster_name = flstring('local',12);
-            			wid = flstring(oval(j),7);
-            			ws = flstring(self.workers(j).State,10);
-            			wd = self.workers(j).Diary;
-            			if ~isempty(wd)
-	            			try
-		            			wd = splitlines(wd);
-			            		if isempty(wd{end})
-			            			wd(end) = [];
-			            		end
-
-	            				wd = flstring(wd{end},20);
-	            			catch
-	            				wd = flstring('error parsing diary',20);
-	            			end
-	            		else
-	            			wd = flstring('',20);
-	            		end
-            			fprintf([cluster_name  ' ' wid ' ' ws ' ' wd  '\n'])
-            		end
-            	else
-            		if isfield(self.clusters(i).plog,'worker_diary')
-	            		for j = 1:length(self.clusters(i).plog.worker_diary)
-	            			cluster_name = flstring(self.clusters(i).Name,12);
-	            			wid = flstring(oval(j),7);
-	            			ws = flstring(self.clusters(i).plog.worker_state{j},10);
-	            			wd = self.clusters(i).plog.worker_diary{j};
-	            			if ~isempty(wd)
-		            			try
-			            			wd = splitlines(wd);
-				            		if isempty(wd{end})
-				            			wd(end) = [];
-				            		end
-
-		            				wd = flstring(wd{end},20);
-		            			catch
-
-		            				wd = flstring('error parsing diary',20);
-		            			end
-		            		else
-		            			wd = flstring('',20);
-		            		end
-	            			fprintf([cluster_name  ' ' wid ' ' ws ' ' wd  '\n'])
-	            		end
-	            	end
-            	end
-            end
-
-		end % end showWorkerStates
-
-
+		% when run with no input arguments, will run as slave
+		% when called with any argument, will run as master
 		function self = psychopomp(varargin)
-			% get the current pool, and start one if needed
+			
 
 			if ispc
-				self.psychopomp_folder = fileparts(which(mfilename));
+				error('psychopomp cannot run on a Windows computer')
 			else
 				self.psychopomp_folder = '~/.psych';
 				if exist(self.psychopomp_folder,'file') == 7
@@ -183,21 +128,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				end
 			end
 
-
-			% delete all old timers
-			t = timerfindall;
-			for i = 1:length(t)
-	
-				if (any(strfind(func2str(t(i).TimerFcn),'psychopomp')))
-					stop(t(i))
-					delete(t(i))
-					
-				end
-			end
-
-			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
-
-
+			self.daemonize;
 
 			% create do, doing, done folders if they don't exist
 			if exist(joinPath(self.psychopomp_folder,'do'),'file') == 7
@@ -215,10 +146,10 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 			if nargin == 0
 				self.addCluster('local')
+				return
 			end
 
-
-			self.controller_handle = parfeval(@self.masterController,0,0);
+			self.is_master = true;
 
 			for i = 1:length(varargin)
 				self.addCluster(varargin{i});
@@ -252,42 +183,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		end
 
 
-		function stopDaemon(self)
-
-			stop(self.daemon_handle);
-			delete(self.daemon_handle);
-
-		end % end stopDaemon
-
-		function daemonize(self)
-			
-
-			% stop all existing timers
-			t = timerfindall;
-			for i = 1:length(t)
-				if any(strfind(func2str(t(i).TimerFcn),'psychopomp'))
-					stop(t(i))
-					delete(t(i))
-				end
-			end
-
-
-			% add the ~/.psych folder to the path so that sim functions can be resolved
-			addpath('~/.psych')
-
-
-			self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',.5);
-			start(self.daemon_handle);
-
-			% make sure the parpool never shuts down 
-			try
-				pool = gcp('nocreate');
-				pool.IdleTimeout = Inf;
-			catch
-			end
-
-		end
-
 
 		function self = set.x(self,value)
 
@@ -296,7 +191,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			self.x = value;
 
 
-			if strcmp(self.daemon_handle.running,'on')
+			if ~self.is_master
 				self.x.rebase;
 			end
 

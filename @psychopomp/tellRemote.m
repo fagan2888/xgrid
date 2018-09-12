@@ -11,7 +11,7 @@
 % tells the remote to do something, and waits till it gets an OK
 % or times out
 
-function [status] = tellRemote(self,cluster_name,command,value)
+function [status] = tellRemote(self,cluster_name,command,varargin)
 
 if nargin < 4
 	value = 0;
@@ -31,6 +31,8 @@ if e ~= 0
 		error('Error deleting old response on remote')
 	end
 end
+
+keyboard
 
 
 save('~/.psych/com.mat','command','value');
