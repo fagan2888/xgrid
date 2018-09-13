@@ -70,7 +70,7 @@ Ca_prom = std(Ca);
 Ca_peaks = burst_peak_loc;
 
 % find spikes
-spike_times = nonnans(psychopomp.findNSpikes(V,1000,on_off_thresh));
+spike_times = nonnans(xolotl.findNSpikeTimes(V,1000,on_off_thresh));
 
 if length(spike_times) == 0
 	burst_metrics(10) = 4;

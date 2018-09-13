@@ -51,7 +51,9 @@ else
 	cprintf('Green','OK')
 
 
-	% since this is being run as a controller, slow down the daemon
+	% since this is being run as a controller, we'll need a daemon
+	self.daemonize;
+	
 	stop(self.daemon_handle)
 	self.daemon_handle.Period = 5;
 	start(self.daemon_handle)
