@@ -63,7 +63,7 @@ function simulate_core(self,idx,n_runs)
 			catch err
 				disp(err)
 				for j = 1:length(err.stack)
-					disp(['file: ' err.stack(j).file '  line:' err.stack(j).line])
+					disp(err.stack(j))
 				end
 				warning('Error while running simulation function.')
 			end
@@ -80,6 +80,9 @@ function simulate_core(self,idx,n_runs)
 				for j = 1:length(data)
 					data{j}(:,i) = vectorise(outputs{j});
 				end
+			else
+				error('Something not OK, probably a bug in the simulation func')
+
 			end
 
 		end

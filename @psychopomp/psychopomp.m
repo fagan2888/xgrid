@@ -133,8 +133,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			% wipe all old C++ files in .psych
 			system('rm ~/.psych/*.hpp');
 
-			self.daemonize;
-
 			% create do, doing, done folders if they don't exist
 			if exist(joinPath(self.psychopomp_folder,'do'),'file') == 7
 			else

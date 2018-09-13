@@ -15,7 +15,7 @@ function addCluster(self,cluster_name)
 if strcmp(cluster_name,'local')
 
 	self.current_pool = gcp;
-	self.num_workers = self.current_pool.NumWorkers;
+	self.num_workers = self.current_pool.NumWorkers - 1;
 
 	if isempty(self.clusters)
 
