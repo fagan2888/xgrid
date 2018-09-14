@@ -193,7 +193,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			assert(length(value)==1,'Only one xololt object can be linked')
 			self.x = value;
 
-			if ~is_master & ~isempty(p.daemon_handle)
+			if ~self.is_master & ~isempty(p.daemon_handle)
 				% psychopomp is being controlled
 				% by a remote
 				% assume that C++ header files exist
