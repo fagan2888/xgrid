@@ -120,6 +120,8 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		function self = psychopomp(varargin)
 			
 
+			xolotl.cleanup;
+
 			if ispc
 				error('psychopomp cannot run on a Windows computer')
 			else
@@ -131,7 +133,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			end
 
 			% wipe all old C++ files in .psych
-			system('rm ~/.psych/*.hpp');
+			[e,o] = system('rm ~/.psych/*.hpp');
 
 			% create do, doing, done folders if they don't exist
 			if exist(joinPath(self.psychopomp_folder,'do'),'file') == 7
