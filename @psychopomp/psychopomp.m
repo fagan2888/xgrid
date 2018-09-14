@@ -207,8 +207,15 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 			self.x.md5hash;
 			self.x.skip_hash = true;
 
-			self.x.transpile;
-			self.x.compile;
+
+			try
+				self.x.transpile;
+				self.x.compile;
+			catch err
+				for i = 1:length(err.stack)
+					disp(err.stack(i))
+				end
+			end
 
 			self.xolotl_hash = self.x.hash;
 
