@@ -26,7 +26,7 @@ try
 	burst_period = burst_metrics(1);
 	n_spikes_per_burst = burst_metrics(2);
 
-	spike_times = psychopomp.findNSpikes(V,100);
+	spike_times = xolotl.findNSpikes(V,100);
 
 	disp('Sim successfully completed!')
 
