@@ -35,7 +35,8 @@ function cleanup(self)
 	% wipe all files in the folder
 	allfiles = dir(self.psychopomp_folder);
 	for i = 1:length(allfiles)
-		if strcmp(allfiles(i).name,'benchmark.mat')
+		[~,~,ext]=fileparts(allfiles(i).name);
+		if strcmp(ext,'.mat')
 			continue
 		end
 		if allfiles(i).isdir
