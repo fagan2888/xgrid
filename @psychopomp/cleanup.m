@@ -32,6 +32,18 @@ function cleanup(self)
 		delete(joinPath(allfiles(i).folder,allfiles(i).name))
 	end
 
+	% wipe all files in the folder
+	allfiles = dir(self.psychopomp_folder);
+	for i = 1:length(allfiles)
+		if strcmp(allfiles(i).name,'benchmark.mat')
+			continue
+		end
+		if allfiles(i).isdir
+			continue
+		end
+		delete([allfiles(i).folder filesep allfiles(i).name])
+	end
+
 	% cleanup all remotes
 	for i = 1:length(self.clusters)
 		if strcmp(self.clusters(i).Name,'local')
