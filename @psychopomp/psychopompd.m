@@ -45,9 +45,10 @@ if self.is_master
 		parfeval(@self.getRemoteState,0,i);
 
 		% load the log 
-		load([self.psychopomp_folder '/' self.clusters(i).Name '.log.mat']);
+		
 
 		try
+			load([self.psychopomp_folder '/' self.clusters(i).Name '.log.mat']);
 			self.clusters(i).plog = plog;
 		catch
 		end

@@ -43,8 +43,7 @@ for i = 1:length(g_CaS_space)
 	end
 end
 
-if exist('cluster_name','var')
-	p = psychopomp(cluster_name);
+if exist('p','var') && isa(p,'psychopomp')
 else
 	p = psychopomp();
 end
