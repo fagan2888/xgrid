@@ -8,14 +8,16 @@
 % outputs, and returning data that matches the dimensions 
 % specified in the data_sizes property 
 
-function [burst_period, n_spikes_per_burst, spike_times] = psychopomp_test_func(x,~,~)
+function [burst_period, n_spikes_per_burst, spike_times, sim_time] = psychopomp_test_func(x,~,~)
 
 try
 
 	x.closed_loop = false;
 	x.reset;
 
+	tic
 	[V,Ca] = x.integrate; 
+	sim_time = toc;
 
 	transient_cutoff = floor(length(V)/2);
 	Ca = Ca(transient_cutoff:end,1);

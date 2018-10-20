@@ -23,11 +23,14 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		clusters
 
 		stagger_time = 1 % seconds
+
+		num_workers
+		
 	end % end props
 
 	properties (SetAccess = protected)
 		allowed_param_names
-		num_workers
+		
 		workers
 		n_sims
 		xolotl_hash
