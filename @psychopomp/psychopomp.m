@@ -40,6 +40,8 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 		is_master = false;
 		speed 
+
+		
 	end
 
 	properties (Access = protected)
@@ -171,7 +173,11 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 			% check if it exists
 			assert(isa(value,'function_handle'),'Sim func must be a function handle')
-			assert(exist(func2str(value),'file')==2,'Sim func could not be located');
+
+			fs = func2str(value);
+			loc = which(fs);
+			assert(~isempty(loc),'Sim func could not be located')
+		
 
 			self.sim_func = value;
 
@@ -182,9 +188,10 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				end
 
 				% copy the sim function onto the remote
-				[e,~] = system(['scp "' which(func2str(value)) '" ' self.clusters(i).Name ':~/.psych/']);
-				assert(e == 0, 'Error copying sim function onto remote')
+				mtools.net.copyFun(value,[self.clusters(i).Name ':~/.psych/']);
 
+	
+				% tell the remote to use this
 				command = ['sim_func = @' func2str(value) ';'];
 				self.tellRemote(self.clusters(i).Name,command);
 			end

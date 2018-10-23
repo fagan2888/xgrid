@@ -40,9 +40,19 @@ function cleanup(self)
 			continue
 		end
 		if allfiles(i).isdir
+			if strcmp(allfiles(i).name(1),'+') | strcmp(allfiles(i).name(1),'@')
+				% class or package, destroy
+				try
+					rmdir([allfiles(i).folder filesep allfiles(i).name],'s')
+				catch
+				end
+			end
 			continue
 		end
-		delete([allfiles(i).folder filesep allfiles(i).name])
+		try
+			delete([allfiles(i).folder filesep allfiles(i).name])
+		catch
+		end
 	end
 
 	% cleanup all remotes
