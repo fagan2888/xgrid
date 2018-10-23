@@ -79,7 +79,9 @@ function simulate_core(self,idx,n_runs)
 				for j = 1:length(data)
 					data{j}(:,i) = vectorise(outputs{j});
 				end
-			else
+			else err
+				% write this error to disk
+				save([GetMD5(now) '.error'],'err')
 				error('Something not OK, probably a bug in the simulation func')
 
 			end
