@@ -60,6 +60,8 @@ p.sim_func = @psychopomp_test_func;
 num_cores = feature('numcores')*2;
 speed_per_worker_mean = zeros(num_cores+1,1);
 speed_per_worker_std = zeros(num_cores+1,1);
+real_elapsed_time = NaN(num_cores+1,1);
+
 
 % first do the foreground
 p.simulate_core(1,1);
@@ -67,6 +69,7 @@ all_data = p.gather;
 S = all_data{4};
 speed_per_worker_mean(1) = mean((x.t_end*1e-3)./S);
 speed_per_worker_std(1) = std((x.t_end*1e-3)./S);
+
 
 figure, hold on
 h = errorbar(0:num_cores,speed_per_worker_mean,speed_per_worker_std);
@@ -91,8 +94,12 @@ for i = 2:length(speed_per_worker_mean)
 
 	p.sim_func = @psychopomp_test_func;
 
+	tic
+
 	p.simulate;
 	wait(p.workers);
+
+	real_elapsed_time(i) = toc;
 
 	all_data = p.gather;
 	S = all_data{4};
