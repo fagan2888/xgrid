@@ -33,7 +33,16 @@ for i = 1:length(self.clusters)
 	else
 		disp(['Copying data from ' self.clusters(i).Name])
 
-		[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/*.ppp*  ~/.psych/done/' ]);
+
+		% copy them in 10 blocks so that we can report progress...
+		for j = 1:10
+			textbar(j,10)
+			[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/job_' oval(j) '*.ppp*  ~/.psych/done/' ]);
+			assert(e == 0,'Error copying job file to remote cluster')
+		end
+
+
+		
 
 		assert(e == 0,' Error copying files from remote')
 	end
