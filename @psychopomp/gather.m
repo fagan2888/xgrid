@@ -38,13 +38,13 @@ for i = 1:length(self.clusters)
 		for j = 1:10
 			textbar(j,10)
 			[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/job_' oval(j) '*.ppp*  ~/.psych/done/' ]);
+			if any(any(strfind(o,'No such file or directory')))
+				continue
+			end
+
 			assert(e == 0,'Error copying job file to remote cluster')
 		end
 
-
-		
-
-		assert(e == 0,' Error copying files from remote')
 	end
 end
 
