@@ -215,10 +215,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 				self.x.rebase;			
 			end
 
-			self.x.skip_hash = false;
-			self.x.md5hash;
-			self.x.skip_hash = true;
-
 
 			try
 				self.x.transpile;

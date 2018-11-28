@@ -56,6 +56,7 @@ p.batchify(all_params,parameters_to_vary);
 % configure the simulation type, and the analysis functions 
 p.sim_func = @psychopomp_test_func;
 
+return
 
 tic 
 p.simulate;
