@@ -69,19 +69,15 @@ function batchify(self,params,param_names)
 			movefile([do_folder files_to_copy(j).name],[do_folder 'remote_jobs/' files_to_copy(j).name])
 		end
 
-		% copy them in 10 blocks so that we can report progress...
-		for j = 1:10
-			textbar(j,10)
-			[e,o] = system(['scp ' do_folder 'remote_jobs/job_'  mat2str(j) '*.ppp ' self.clusters(i).Name ':~/.psych/do/']);
-			assert(e == 0,'Error copying job file to remote cluster')
-		end
+		files_to_copy = dir([do_folder 'remote_jobs/*.ppp']);
+		mtools.net.copyFiles(files_to_copy,[self.clusters(i).Name ':~/.psych/do/']);
 
-		
+		% delete files we just copied over
+		for j = 1:length(files_to_copy)
+			delete([files_to_copy(j).folder filesep files_to_copy(j).name])
+		end
 
 		% delete the entire temp folder
-		for j = 1:length(files_to_copy)
-			delete([do_folder 'remote_jobs/' files_to_copy(j).name])
-		end
 		rmdir([do_folder 'remote_jobs'])
 
 
