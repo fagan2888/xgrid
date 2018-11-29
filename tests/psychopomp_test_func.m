@@ -8,7 +8,7 @@
 % outputs, and returning data that matches the dimensions 
 % specified in the data_sizes property 
 
-function [burst_period, n_spikes_per_burst, spike_times, sim_time] = psychopomp_test_func(x,~,~)
+function [burst_period, n_spikes_per_burst, sim_time] = psychopomp_test_func(x,~,~)
 
 
 
@@ -27,8 +27,6 @@ burst_metrics = psychopomp.findBurstMetrics(V,Ca);
 
 burst_period = burst_metrics(1);
 n_spikes_per_burst = burst_metrics(2);
-
-spike_times = xolotl.findNSpikes(V,100);
 
 disp('Sim successfully completed!')
 

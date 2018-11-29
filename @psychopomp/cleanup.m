@@ -60,6 +60,10 @@ for i = 1:length(allfiles)
 	end
 end
 
+
+% destroy all workers
+self.workers = [];
+
 % cleanup all remotes
 for i = 1:length(self.clusters)
 	if strcmp(self.clusters(i).Name,'local')

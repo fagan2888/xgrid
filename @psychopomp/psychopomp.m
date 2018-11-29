@@ -202,7 +202,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		function self = set.x(self,value)
 
 
-			assert(length(value)==1,'Only one xololt object can be linked')
+			assert(length(value)==1,'Only one xolotl object can be linked')
 			self.x = value;
 
 			if ~self.is_master & ~isempty(self.daemon_handle)
@@ -235,7 +235,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 				% copy over all C++ files onto the remote
 				copy_these = self.x.generateHeaders;
-				disp('Copying C++ files to remote...')
+				disp(['Copying C++ files to ' self.clusters(i).Name ' ...'])
 				for j = 2:length(copy_these)
 					if isempty(copy_these{j})
 						continue
