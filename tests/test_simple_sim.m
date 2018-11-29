@@ -45,14 +45,12 @@ else
 end
 
 p.cleanup;
-p.n_batches = 1;
+p.n_batches = 3;
 p.x = x;
 p.batchify(all_params,parameters_to_vary);
 
 % configure the simulation type, and the analysis functions 
 p.sim_func = @psychopomp_test_func;
-
-return
 
 tic 
 p.simulate;

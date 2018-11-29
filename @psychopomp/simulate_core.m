@@ -54,11 +54,11 @@ function simulate_core(self,idx,n_runs)
 			self.x.set(param_names,this_params(:,i))
 
 			% run the model
-			ok = false;
+			sim_ok = false;
 
 			try
 				[outputs{1:length(argOutNames(self.sim_func))}] = self.sim_func(self.x);
-				ok = true;
+				sim_ok = true;
 			catch err
 				disp(err)
 				for j = 1:length(err.stack)
@@ -68,7 +68,7 @@ function simulate_core(self,idx,n_runs)
 			end
 
 			% map the outputs to the data structures
-			if ok
+			if sim_ok
 				if ~exist('data','var')
 					% create placeholders
 					for j = length(outputs):-1:1
@@ -81,11 +81,22 @@ function simulate_core(self,idx,n_runs)
 				end
 			else err
 				% write this error to disk
-				save([GetMD5(now) '.error'],'err')
-				error('Something not OK, probably a bug in the simulation func')
+				save([GetMD5([doing_folder this_job]) '.error'],'err')
+				warning('Something not OK, probably a bug in the simulation func')
+
+				% move the job back to the queue and try again
+				disp('Returning this job to the queue...')
+				movefile([doing_folder this_job],[do_folder this_job])
+				pause(1)
+
+				break
 
 			end
 
+		end
+
+		if ~sim_ok
+			continue
 		end
 
 		% some defensive measures to make sure that data

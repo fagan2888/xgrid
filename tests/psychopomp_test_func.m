@@ -10,7 +10,10 @@
 
 function [burst_period, n_spikes_per_burst, sim_time] = psychopomp_test_func(x,~,~)
 
-
+% randomly fail
+if rand > .95
+	error('Random failure')
+end
 
 x.closed_loop = false;
 x.reset;

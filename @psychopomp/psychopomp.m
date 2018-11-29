@@ -125,8 +125,6 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 		function self = psychopomp(varargin)
 			
 
-			xolotl.cleanup;
-
 			if ispc
 				error('psychopomp cannot run on a Windows computer')
 			else
