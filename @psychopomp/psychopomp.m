@@ -233,7 +233,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 				% copy over all C++ files onto the remote
 				copy_these = self.x.generateHeaders;
-				disp(['Copying C++ files to ' self.clusters(i).Name ' ...'])
+				fprintf(['Copying C++ files to ' self.clusters(i).Name ' ...'])
 				for j = 2:length(copy_these)
 					if isempty(copy_these{j})
 						continue
@@ -241,7 +241,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 					[e,~]=system(['scp ' copy_these{j} ' ' self.clusters(i).Name ':~/.psych/']);
 					assert(e == 0,['Error while copying ' copy_these{j}])
 				end
-
+				fprintf('DONE\n')
 				command = 'x = value';
 				self.tellRemote(self.clusters(i).Name,command,value);
 			end
