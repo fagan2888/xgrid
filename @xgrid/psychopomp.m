@@ -11,7 +11,7 @@
 % runs using xolotl (https://github.com/sg-s/xolotl)
 % needs the parallel computing toolbox
 
-classdef psychopomp < handle & matlab.mixin.CustomDisplay
+classdef xgrid < handle & matlab.mixin.CustomDisplay
 
 	properties
 		x@xolotl
@@ -45,7 +45,7 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 	end
 
 	properties (Access = protected)
-		psychopomp_folder
+		xgrid_folder
 		sim_start_time
 	end
 
@@ -54,8 +54,8 @@ classdef psychopomp < handle & matlab.mixin.CustomDisplay
 
 
         function displayScalarObject(self)
-            url = 'https://github.com/sg-s/psychopomp/';
-            fprintf(['\b\b\b\b\b\b<a href="' url '">psychopomp</a> '])
+            url = 'https://github.com/sg-s/xgrid/';
+            fprintf(['\b\b\b\b\b\b<a href="' url '">xgrid</a> '])
             if isempty(self.clusters) 
             	 fprintf('is not connected to any cluster!')
             else
