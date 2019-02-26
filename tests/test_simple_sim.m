@@ -84,3 +84,4 @@ title('#spikes/burst')
 
 figlib.pretty();
 
+!rm *.error
