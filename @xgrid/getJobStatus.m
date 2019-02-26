@@ -10,9 +10,9 @@
 % return the status of jobs on local machine 
 
 function [n_do, n_doing, n_done] = getJobStatus(self)
-	do_folder = [self.psychopomp_folder filesep 'do' filesep ];
-	doing_folder = [self.psychopomp_folder filesep 'doing' filesep ];
-	done_folder = [self.psychopomp_folder filesep 'done' filesep ];
+	do_folder = [self.xgrid_folder filesep 'do' filesep ];
+	doing_folder = [self.xgrid_folder filesep 'doing' filesep ];
+	done_folder = [self.xgrid_folder filesep 'done' filesep ];
 	free_jobs = dir([ do_folder '*.ppp']);
 	running_jobs = dir([ doing_folder '*.ppp']);
 	done_jobs = dir([ done_folder '*.ppp']);

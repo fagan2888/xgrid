@@ -8,7 +8,7 @@
 %    |_|        |___/                 |_|                   |_|
 % 
 %
-% This is the daemon version of psychopomp
+% This is the daemon version of xgrid
 % it's a very simple loop that is meant to be run
 % on a timer. every time it runs, it looks to see if 
 % there is a command that tells it to do something
@@ -16,16 +16,16 @@
 % it should never ever throw an error, so 
 % count on this running at all times
 
-function psychopompd(self,~,~)
+function xgridd(self,~,~)
 
 
 % check if there is a pyschopomp object in the ws,
 % otherwise kill itself
 
 vars = evalin('base','whos');
-if ~any(strcmp({vars.class},'psychopomp'))
+if ~any(strcmp({vars.class},'xgrid'))
 	d = dbstack;
-	if any(strcmp({d.name},'psychopomp.psychopomp'))
+	if any(strcmp({d.name},'xgrid.xgrid'))
 		return
 	end
 	disp('Stopping daemon...')
@@ -48,7 +48,7 @@ if self.is_master
 		
 
 		try
-			load([self.psychopomp_folder '/' self.clusters(i).Name '.log.mat']);
+			load([self.xgrid_folder '/' self.clusters(i).Name '.log.mat']);
 			self.clusters(i).plog = plog;
 		catch
 		end

@@ -8,7 +8,7 @@
 % outputs, and returning data that matches the dimensions 
 % specified in the data_sizes property 
 
-function [burst_period, n_spikes_per_burst, sim_time] = psychopomp_test_func(x,~,~)
+function [burst_period, n_spikes_per_burst, sim_time] = xgrid_test_func(x,~,~)
 
 % randomly fail
 if rand > .95
@@ -26,7 +26,7 @@ transient_cutoff = floor(length(V)/2);
 Ca = Ca(transient_cutoff:end,1);
 V = V(transient_cutoff:end,1);
 
-burst_metrics = psychopomp.findBurstMetrics(V,Ca);
+burst_metrics = xgrid.findBurstMetrics(V,Ca);
 
 burst_period = burst_metrics(1);
 n_spikes_per_burst = burst_metrics(2);

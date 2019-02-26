@@ -10,27 +10,27 @@
 
 function cleanup(self)
 
-do_folder = [self.psychopomp_folder filesep 'do' filesep ];
-doing_folder = [self.psychopomp_folder filesep 'doing' filesep ];
-done_folder = [self.psychopomp_folder filesep 'done' filesep ];
+do_folder = [self.xgrid_folder filesep 'do' filesep ];
+doing_folder = [self.xgrid_folder filesep 'doing' filesep ];
+done_folder = [self.xgrid_folder filesep 'done' filesep ];
 
 % remove all .ppp files
 allfiles = dir([do_folder '*.ppp']);
 for i = 1:length(allfiles)
-	delete(joinPath(allfiles(i).folder,allfiles(i).name))
+	delete(pathlib.join(allfiles(i).folder,allfiles(i).name))
 end
 allfiles = dir([doing_folder '*.ppp']);
 for i = 1:length(allfiles)
-	delete(joinPath(allfiles(i).folder,allfiles(i).name))
+	delete(pathlib.join(allfiles(i).folder,allfiles(i).name))
 end
 allfiles = dir([done_folder '*.ppp']);
 for i = 1:length(allfiles)
-	delete(joinPath(allfiles(i).folder,allfiles(i).name))
+	delete(pathlib.join(allfiles(i).folder,allfiles(i).name))
 end
 
 allfiles = dir([done_folder '*.ppp.data']);
 for i = 1:length(allfiles)
-	delete(joinPath(allfiles(i).folder,allfiles(i).name))
+	delete(pathlib.join(allfiles(i).folder,allfiles(i).name))
 end
 
 % destroy all error files
@@ -38,7 +38,7 @@ end
 [e,o]=system('rm *.error');
 
 % wipe all files in the folder
-allfiles = dir(self.psychopomp_folder);
+allfiles = dir(self.xgrid_folder);
 for i = 1:length(allfiles)
 	[~,~,ext]=fileparts(allfiles(i).name);
 	if strcmp(ext,'.mat')

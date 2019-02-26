@@ -7,7 +7,7 @@ function varargout = unpack(self, all_data)
 
 assert(~isempty(self.sim_func),'No sim_func defined')
 
-var_names = argOutNames(self.sim_func);
+var_names = corelib.argOutNames(self.sim_func);
 
 assert(length(all_data) == length(var_names),'Length of all_data does not match the number of outputs in the sim_func')
 

@@ -16,7 +16,7 @@ original_dir = pwd;
 
 assert(isempty(self.x),'benchmark cannot run if there a xolotl object already configured')
 
-cd([fileparts(fileparts(which('psychopomp'))) filesep 'tests'])
+cd([fileparts(fileparts(which('xgrid'))) filesep 'tests'])
 
 vol = 0.0628; % this can be anything, doesn't matter
 f = 1.496; % uM/nA
@@ -66,7 +66,7 @@ self.x = x;
 self.batchify(all_params,parameters_to_vary);
 
 % configure the simulation type, and the analysis functions 
-self.sim_func = @psychopomp_test_func;
+self.sim_func = @xgrid_test_func;
 
 
 tic 

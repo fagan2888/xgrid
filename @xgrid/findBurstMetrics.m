@@ -70,7 +70,7 @@ Ca_prom = std(Ca);
 Ca_peaks = burst_peak_loc;
 
 % find spikes
-spike_times = nonnans(xtools.findNSpikeTimes(V,1000,on_off_thresh));
+spike_times = veclib.nonnans(xtools.findNSpikeTimes(V,1000,on_off_thresh));
 
 if length(spike_times) == 0
 	burst_metrics(10) = 4;
@@ -194,7 +194,7 @@ burst_metrics(10) = 0;
 if nargout == 0
 	fprintf('Burst metrics:\n')
 	fprintf('--------------\n')
-	fprintf(['Burst period:       '  oval(burst_metrics(1)) '\n'])
-	fprintf(['# spikes/burst:     '  oval(burst_metrics(2)) '\n'])
-	fprintf(['Duty Cycle:         '  oval(burst_metrics(9),3) '\n'])
+	fprintf(['Burst period:       '  strlib.oval(burst_metrics(1)) '\n'])
+	fprintf(['# spikes/burst:     '  strlib.oval(burst_metrics(2)) '\n'])
+	fprintf(['Duty Cycle:         '  strlib.oval(burst_metrics(9),3) '\n'])
 end

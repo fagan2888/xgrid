@@ -36,8 +36,8 @@ for i = 1:length(self.clusters)
 
 		% copy them in 10 blocks so that we can report progress...
 		for j = 1:10
-			textbar(j,10)
-			[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/job_' oval(j) '*.ppp*  ~/.psych/done/' ]);
+			corelib.textbar(j,10)
+			[e,o] = system(['scp ' self.clusters(i).Name ':~/.psych/done/job_' strlib.oval(j) '*.ppp*  ~/.psych/done/' ]);
 			if any(any(strfind(o,'No such file or directory')))
 				continue
 			end
@@ -48,7 +48,7 @@ for i = 1:length(self.clusters)
 	end
 end
 
-done_folder = [self.psychopomp_folder filesep 'done' filesep ];
+done_folder = [self.xgrid_folder filesep 'done' filesep ];
 job_files =  dir([done_folder '*.ppp']);
 data_files =  dir([done_folder '*.ppp.data']);
 assert(length(job_files) == length(data_files),'# of data files does not match # of job files')

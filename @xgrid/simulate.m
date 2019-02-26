@@ -33,7 +33,7 @@ function simulate(self)
 
 			for j = 1:self.num_workers
 				self.startWorker();
-				textbar(j, self.num_workers)
+				corelib.textbar(j, self.num_workers)
 			end
 
 

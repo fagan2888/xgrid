@@ -12,5 +12,5 @@ function getRemoteState(self,idx)
 
 
 disp('Getting log from remote...')
-[e,~] = system(['scp ' self.clusters(idx).Name ':~/.psych/log.mat ' self.psychopomp_folder '/' self.clusters(idx).Name '.log.mat']);
+[e,~] = system(['scp ' self.clusters(idx).Name ':~/.psych/log.mat ' self.xgrid_folder '/' self.clusters(idx).Name '.log.mat']);
 

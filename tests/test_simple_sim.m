@@ -1,21 +1,9 @@
-% small script that tests psychopomp
+% small script that tests xgrid
 % this simulates 100 different neurons 
 
 
 
-x = xolotl;
-x.add('compartment','AB','A',0.0628);
-x.AB.add('prinz/CalciumMech','f',1.496);
-
-
-x.AB.add('liu/NaV','gbar',@() 115/x.AB.A,'E',30);
-x.AB.add('liu/CaT','gbar',@() 1.44/x.AB.A,'E',30);
-x.AB.add('liu/CaS','gbar',@() 1.7/x.AB.A,'E',30);
-x.AB.add('liu/ACurrent','gbar',@() 15.45/x.AB.A,'E',-80);
-x.AB.add('liu/KCa','gbar',@() 61.54/x.AB.A,'E',-80);
-x.AB.add('liu/Kd','gbar',@() 38.31/x.AB.A,'E',-80);
-x.AB.add('liu/HCurrent','gbar',@() .6343/x.AB.A,'E',-20);
-x.AB.add('Leak','gbar',@() 0.0622/x.AB.A,'E',-50);
+x = xolotl.examples.BurstingNeuron('liu');
 x.dt = .1;
 x.sim_dt = .1;
 x.t_end = 10e3;
@@ -39,9 +27,9 @@ for i = 1:length(g_CaS_space)
 	end
 end
 
-if exist('p','var') && isa(p,'psychopomp')
+if exist('p','var') && isa(p,'xgrid')
 else
-	p = psychopomp();
+	p = xgrid();
 end
 
 p.cleanup;
@@ -50,7 +38,7 @@ p.x = x;
 p.batchify(all_params,parameters_to_vary);
 
 % configure the simulation type, and the analysis functions 
-p.sim_func = @psychopomp_test_func;
+p.sim_func = @xgrid_test_func;
 
 tic 
 p.simulate;
@@ -94,5 +82,5 @@ ylabel('g_CaS')
 xlabel('g_A')
 title('#spikes/burst')
 
-prettyFig();
+figlib.pretty();
 

@@ -43,9 +43,9 @@ for i = 1:length(g_CaS_space)
 	end
 end
 
-if exist('p','var') && isa(p,'psychopomp')
+if exist('p','var') && isa(p,'xgrid')
 else
-	p = psychopomp();
+	p = xgrid();
 end
 
 p.cleanup;
@@ -54,7 +54,7 @@ p.x = x;
 p.batchify(all_params,parameters_to_vary);
 
 % configure the simulation type, and the analysis functions 
-p.sim_func = @psychopomp_test_func;
+p.sim_func = @xgrid_test_func;
 
 
 num_cores = feature('numcores')*2;
@@ -85,14 +85,14 @@ for i = 2:length(speed_per_worker_mean)
 
 	parpool('local',i-1);
 
-	p = psychopomp;
+	p = xgrid;
 	p.num_workers = i - 1;
 	p.cleanup;
 	p.n_batches = 1;
 	p.x = x;
 	p.batchify(all_params,parameters_to_vary);
 
-	p.sim_func = @psychopomp_test_func;
+	p.sim_func = @xgrid_test_func;
 
 	tic
 

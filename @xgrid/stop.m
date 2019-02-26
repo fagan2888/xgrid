@@ -22,8 +22,8 @@ if ~isempty(self.workers)
 end
 
 % move doing jobs back to queue
-do_folder = [self.psychopomp_folder filesep 'do' filesep ];
-doing_folder = [self.psychopomp_folder filesep 'doing' filesep ];
+do_folder = [self.xgrid_folder filesep 'do' filesep ];
+doing_folder = [self.xgrid_folder filesep 'doing' filesep ];
 
 allfiles = dir([doing_folder '*.ppp']);
 for i = 1:length(allfiles)

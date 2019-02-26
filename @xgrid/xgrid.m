@@ -60,7 +60,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
             	 fprintf('is not connected to any cluster!')
             else
             	for i = 1:length(self.clusters)
-            		fprintf(['\nis using ' oval(self.clusters(i).nthreads) ' threads on ' self.clusters(i).Name]);
+            		fprintf(['\nis using ' strlib.oval(self.clusters(i).nthreads) ' threads on ' self.clusters(i).Name]);
             	end
             end
 
@@ -69,7 +69,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 			for i = length(self.clusters):-1:1
 				if strcmp(self.clusters(i).Name,'local')
 					[n_do, n_doing, n_done] = getJobStatus(self);
-					cluster_name_disp = flstring('local',12);
+					cluster_name_disp = strlib.fix('local',12);
 					xhash = self.xolotl_hash;
 					status = '';
 				else
@@ -80,12 +80,12 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 					end
 
 					cluster_name_disp = self.clusters(i).Name;
-					cluster_name_disp = flstring(cluster_name_disp,12);
+					cluster_name_disp = strlib.fix(cluster_name_disp,12);
 					n_do = self.clusters(i).plog.n_do; n_doing = self.clusters(i).plog.n_doing; n_done = self.clusters(i).plog.n_done;
 					xhash = self.clusters(i).plog.xolotl_hash;
 					% check that the log isn't stale
 					if etime(datevec(now),datevec(self.clusters(i).plog.last_updated)) < 10
-						status = [oval(etime(datevec(now),datevec(self.clusters(i).plog.last_updated))) 's'];
+						status = [strlib.oval(etime(datevec(now),datevec(self.clusters(i).plog.last_updated))) 's'];
 					else
 						status = 'STALE';
 					end
@@ -102,7 +102,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 				if isempty(xhash) 
 					xhash = 'n/a         ';
 				end
-				fprintf([cluster_name_disp  ' ' flstring(status,7) ' ' flstring(oval(n_do),7) ' ' flstring(oval(n_doing),8) ' ' flstring(oval(n_done),5) ' ' xhash(1:7) '\n'])
+				fprintf([cluster_name_disp  ' ' strlib.fix(status,7) ' ' strlib.fix(strlib.oval(n_do),7) ' ' strlib.fix(strlib.oval(n_doing),8) ' ' strlib.fix(strlib.oval(n_done),5) ' ' xhash(1:7) '\n'])
 
 			end
 
@@ -122,16 +122,16 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 
 		% when run with no input arguments, will run as slave
 		% when called with any argument, will run as master
-		function self = psychopomp(varargin)
+		function self = xgrid(varargin)
 			
 
 			if ispc
-				error('psychopomp cannot run on a Windows computer')
+				error('xgrid cannot run on a Windows computer')
 			else
-				self.psychopomp_folder = '~/.psych';
-				if exist(self.psychopomp_folder,'file') == 7
+				self.xgrid_folder = '~/.psych';
+				if exist(self.xgrid_folder,'file') == 7
 				else
-					mkdir(self.psychopomp_folder)
+					mkdir(self.xgrid_folder)
 				end
 			end
 
@@ -139,17 +139,17 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 			[e,o] = system('rm ~/.psych/*.hpp');
 
 			% create do, doing, done folders if they don't exist
-			if exist(joinPath(self.psychopomp_folder,'do'),'file') == 7
+			if exist(pathlib.join(self.xgrid_folder,'do'),'file') == 7
 			else
-				mkdir(joinPath(self.psychopomp_folder,'do'))
+				mkdir(pathlib.join(self.xgrid_folder,'do'))
 			end
-			if exist(joinPath(self.psychopomp_folder,'doing'),'file') == 7
+			if exist(pathlib.join(self.xgrid_folder,'doing'),'file') == 7
 			else
-				mkdir(joinPath(self.psychopomp_folder,'doing'))
+				mkdir(pathlib.join(self.xgrid_folder,'doing'))
 			end
-			if exist(joinPath(self.psychopomp_folder,'done'),'file') == 7
+			if exist(pathlib.join(self.xgrid_folder,'done'),'file') == 7
 			else
-				mkdir(joinPath(self.psychopomp_folder,'done'))
+				mkdir(pathlib.join(self.xgrid_folder,'done'))
 			end
 
 			if nargin == 0
@@ -204,7 +204,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 			self.x = value;
 
 			if ~self.is_master & ~isempty(self.daemon_handle)
-				% psychopomp is being controlled
+				% xgrid is being controlled
 				% by a remote
 				% assume that C++ header files exist
 				% in ~/.psych/, and force cpplab to

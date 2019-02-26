@@ -7,7 +7,7 @@
 %    | |         __/ |                | |                   | |    
 %    |_|        |___/                 |_|                   |_|
 %  
-% static method of psychopomp to help analyze experimental data
+% static method of xgrid to help analyze experimental data
 % here, we only assume that we know spiketimes, and use those 
 % to measure burst metrics for each neuron, and the phase differences
 % between them 
@@ -61,7 +61,7 @@ if size(varargin{1},2) > 1
 		for j = 1:N
 			these_spiketimes{j} = varargin{j}(:,i);
 		end
-		[these_neuron_metrics, these_phase_differences] = psychopomp.spiketimes2stats(these_spiketimes{:});
+		[these_neuron_metrics, these_phase_differences] = xgrid.spiketimes2stats(these_spiketimes{:});
 		for j = 1:N
 			neuron_metrics{j}(:,i) = these_neuron_metrics{j};
 			phase_differences{j}(:,i) = these_phase_differences{j};

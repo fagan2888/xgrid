@@ -58,19 +58,19 @@ else
 	self.daemon_handle.Period = 5;
 	start(self.daemon_handle)
 
-	% check we can SSH into the server, and that psychopomp is running on that server
+	% check we can SSH into the server, and that xgrid is running on that server
 
 	fprintf('\nCopying log...')
-	[e,~] = system(['scp ' cluster_name ':~/.psych/log.mat ' self.psychopomp_folder '/' cluster_name '.log.mat']);
+	[e,~] = system(['scp ' cluster_name ':~/.psych/log.mat ' self.xgrid_folder '/' cluster_name '.log.mat']);
 
 	if e == 0
 		cprintf('Green','OK\n')
 		% load the log 	
 		try
-			load([self.psychopomp_folder '/' cluster_name '.log.mat']);
+			load([self.xgrid_folder '/' cluster_name '.log.mat']);
 		catch
 			pause(.5)
-			load([self.psychopomp_folder '/' cluster_name '.log.mat']);
+			load([self.xgrid_folder '/' cluster_name '.log.mat']);
 		end
 	else
 		error('Could not connect to remote. error copying log from remote')

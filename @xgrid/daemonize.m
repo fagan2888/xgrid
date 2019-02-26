@@ -4,7 +4,7 @@ function daemonize(self)
 % stop all existing timers
 t = timerfindall;
 for i = 1:length(t)
-	if any(strfind(func2str(t(i).TimerFcn),'psychopomp'))
+	if any(strfind(func2str(t(i).TimerFcn),'xgrid'))
 		stop(t(i))
 		delete(t(i))
 	end
@@ -15,7 +15,7 @@ end
 addpath('~/.psych')
 
 
-self.daemon_handle = timer('TimerFcn',@self.psychopompd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',1);
+self.daemon_handle = timer('TimerFcn',@self.xgridd,'ExecutionMode','fixedDelay','TasksToExecute',Inf,'Period',1);
 start(self.daemon_handle);
 
 % make sure the parpool never shuts down 

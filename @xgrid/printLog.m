@@ -12,8 +12,8 @@
 function printLog(self)
 
 % delete old log files if any 
-if exist(joinPath(self.psychopomp_folder,'log.mat'),'file')
-	delete(joinPath(self.psychopomp_folder,'log.mat'))
+if exist(pathlib.join(self.xgrid_folder,'log.mat'),'file')
+	delete(pathlib.join(self.xgrid_folder,'log.mat'))
 end
 
 % start logging
@@ -32,4 +32,4 @@ for i = 1:length(self.workers)
 end
 plog.last_updated = now;
 
-save(joinPath(self.psychopomp_folder,'log.mat'),'plog')
+save(pathlib.join(self.xgrid_folder,'log.mat'),'plog')

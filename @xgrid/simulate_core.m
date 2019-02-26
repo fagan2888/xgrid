@@ -18,9 +18,9 @@ function simulate_core(self,idx,n_runs)
 	while n_runs > 0
 
 		% grab a job file and move it to doing 
-		do_folder = [self.psychopomp_folder filesep 'do' filesep ];
-		doing_folder = [self.psychopomp_folder filesep 'doing' filesep ];
-		done_folder = [self.psychopomp_folder filesep 'done' filesep ];
+		do_folder = [self.xgrid_folder filesep 'do' filesep ];
+		doing_folder = [self.xgrid_folder filesep 'doing' filesep ];
+		done_folder = [self.xgrid_folder filesep 'done' filesep ];
 		free_jobs = dir([ do_folder '*.ppp']);
 
 		if isempty(free_jobs)
@@ -57,7 +57,7 @@ function simulate_core(self,idx,n_runs)
 			sim_ok = false;
 
 			try
-				[outputs{1:length(argOutNames(self.sim_func))}] = self.sim_func(self.x);
+				[outputs{1:length(corelib.argOutNames(self.sim_func))}] = self.sim_func(self.x);
 				sim_ok = true;
 			catch err
 				disp(err)
@@ -72,16 +72,16 @@ function simulate_core(self,idx,n_runs)
 				if ~exist('data','var')
 					% create placeholders
 					for j = length(outputs):-1:1
-						data{j} = NaN(size(vectorise(outputs{j}),1),size(this_params,2));
+						data{j} = NaN(size(corelib.vectorise(outputs{j}),1),size(this_params,2));
 					end
 				end
 
 				for j = 1:length(data)
-					data{j}(:,i) = vectorise(outputs{j});
+					data{j}(:,i) = corelib.vectorise(outputs{j});
 				end
 			else err
 				% write this error to disk
-				save([GetMD5([doing_folder this_job]) '.error'],'err')
+				save([hashlib.md5hash([doing_folder this_job]) '.error'],'err')
 				warning('Something not OK, probably a bug in the simulation func')
 
 				% move the job back to the queue and try again
