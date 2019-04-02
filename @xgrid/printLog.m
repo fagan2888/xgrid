@@ -17,7 +17,7 @@ if exist(pathlib.join(self.xgrid_folder,'log.mat'),'file')
 end
 
 % start logging
-plog.host_name = strtrim(getComputerName);
+plog.host_name = strtrim(corelib.getComputerName);
 plog.nthreads = 2*feature('numcores');
 plog.xolotl_hash = self.xolotl_hash;
 
