@@ -48,7 +48,7 @@ else
 
 	assert(e == 0, 'Could not contact server -- check that you have the right name and that it is reachable')
 
-	cprintf('Green','OK')
+	corelib.cprintf('Green','OK')
 
 
 	% since this is being run as a controller, we'll need a daemon
@@ -64,7 +64,7 @@ else
 	[e,~] = system(['scp ' cluster_name ':~/.psych/log.mat ' self.xgrid_folder '/' cluster_name '.log.mat']);
 
 	if e == 0
-		cprintf('Green','OK\n')
+		corelib.cprintf('Green','OK\n')
 		% load the log 	
 		try
 			load([self.xgrid_folder '/' cluster_name '.log.mat']);
