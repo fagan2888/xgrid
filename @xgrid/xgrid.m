@@ -186,7 +186,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 				end
 
 				% copy the sim function onto the remote
-				mtools.net.copyFun(value,[self.clusters(i).Name ':~/.psych/']);
+				netlib.copyFun(value,[self.clusters(i).Name ':~/.psych/']);
 
 	
 				% tell the remote to use this

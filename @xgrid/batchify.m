@@ -70,7 +70,7 @@ function batchify(self,params,param_names)
 		end
 
 		files_to_copy = dir([do_folder 'remote_jobs/*.ppp']);
-		mtools.net.copyFiles(files_to_copy,[self.clusters(i).Name ':~/.psych/do/']);
+		netlib.copyFiles(files_to_copy,[self.clusters(i).Name ':~/.psych/do/']);
 
 		% delete files we just copied over
 		for j = 1:length(files_to_copy)
