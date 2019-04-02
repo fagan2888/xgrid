@@ -25,6 +25,9 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 		stagger_time = 1 % seconds
 
 		num_workers
+
+
+
 		
 	end % end props
 
@@ -40,6 +43,8 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 
 		is_master = false;
 		speed 
+
+		n_outputs
 
 		
 	end
@@ -194,7 +199,6 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 				self.tellRemote(self.clusters(i).Name,command);
 			end
 		end
-
 
 
 		function self = set.x(self,value)

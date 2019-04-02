@@ -56,6 +56,7 @@ function simulate_core(self,idx,n_runs)
 			% run the model
 			sim_ok = false;
 
+
 			try
 				[outputs{1:length(corelib.argOutNames(self.sim_func))}] = self.sim_func(self.x);
 				sim_ok = true;
