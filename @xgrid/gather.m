@@ -63,6 +63,7 @@ all_param_idx = param_idx;
 xhash0 = xhash;
 
 for i = 2:length(data_files) % because we've already loaded the first one (see above)
+	corelib.textbar(i,length(data_files))
 	clear data param_idx param_names this_params xhash
 	load([done_folder data_files(i).name],'-mat');
 	load([done_folder job_files(i).name],'-mat');
