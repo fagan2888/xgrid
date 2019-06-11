@@ -1,12 +1,12 @@
-%                          _                                       
-%                         | |                                      
-%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __  
-%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \ 
+%                          _
+%                         | |
+%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __
+%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \
 %    | |_) \__ \ |_| | (__| | | | (_) | |_) | (_) | | | | | | |_) |
-%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/ 
-%    | |         __/ |                | |                   | |    
+%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/
+%    | |         __/ |                | |                   | |
 %    |_|        |___/                 |_|                   |_|
-% 
+%
 % benchmarks performance on current hardware, and saves
 % results to ~/.psych/benchmark.mat
 
@@ -26,7 +26,7 @@ phi = (2*f*F*vol)/tau_Ca;
 
 x = xolotl;
 x.add('compartment','AB','A',0.0628,'vol',vol);
-x.AB.add('CalciumMech2','phi',phi);
+x.AB.add('bucholtz/CalciumMech','phi',phi);
 
 
 x.AB.add('liu/NaV','gbar',@() 115/x.AB.A,'E',30);
@@ -65,11 +65,11 @@ self.n_batches = 2;
 self.x = x;
 self.batchify(all_params,parameters_to_vary);
 
-% configure the simulation type, and the analysis functions 
+% configure the simulation type, and the analysis functions
 self.sim_func = @xgrid_test_func;
 
 
-tic 
+tic
 self.simulate;
 wait(self.workers)
 t = toc;
