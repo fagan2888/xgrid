@@ -28,12 +28,12 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 
 
 
-		
+
 	end % end props
 
 	properties (SetAccess = protected)
 		allowed_param_names
-		
+
 		workers
 		n_sims
 		xolotl_hash
@@ -42,11 +42,11 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 		controller_handle
 
 		is_master = false;
-		speed 
+		speed
 
 		n_outputs
 
-		
+
 	end
 
 	properties (Access = protected)
@@ -61,7 +61,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
         function displayScalarObject(self)
             url = 'https://github.com/sg-s/xgrid/';
             fprintf(['\b\b\b\b\b\b<a href="' url '">xgrid</a> '])
-            if isempty(self.clusters) 
+            if isempty(self.clusters)
             	 fprintf('is not connected to any cluster!')
             else
             	for i = 1:length(self.clusters)
@@ -78,7 +78,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 					xhash = self.xolotl_hash;
 					status = '';
 				else
-					
+
 
 					if ~isfield(self.clusters(i),'plog')
 						return
@@ -104,7 +104,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 						end
 					end
 				end
-				if isempty(xhash) 
+				if isempty(xhash)
 					xhash = 'n/a         ';
 				end
 				fprintf([cluster_name_disp  ' ' strlib.fix(status,7) ' ' strlib.fix(strlib.oval(n_do),7) ' ' strlib.fix(strlib.oval(n_doing),8) ' ' strlib.fix(strlib.oval(n_done),5) ' ' xhash(1:7) '\n'])
@@ -115,7 +115,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
             url = ['matlab:' inputname(1) '.showWorkerStates'];
             fprintf(['\n<a href="' url '">show worker states</a> \n'])
 
-     
+
 
         end % end displayScalarObject
    end % end protected methods
@@ -128,7 +128,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 		% when run with no input arguments, will run as slave
 		% when called with any argument, will run as master
 		function self = xgrid(varargin)
-			
+
 
 			if ispc
 				error('xgrid cannot run on a Windows computer')
@@ -180,7 +180,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 			fs = func2str(value);
 			loc = which(fs);
 			assert(~isempty(loc),'Sim func could not be located')
-		
+
 
 			self.sim_func = value;
 
@@ -193,7 +193,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 				% copy the sim function onto the remote
 				netlib.copyFun(value,[self.clusters(i).Name ':~/.psych/']);
 
-	
+
 				% tell the remote to use this
 				command = ['sim_func = @' func2str(value) ';'];
 				self.tellRemote(self.clusters(i).Name,command);
@@ -214,7 +214,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 				% in ~/.psych/, and force cpplab to
 				% only use those files
 				cpplab.rebuildCache({'~/.psych/'})
-				self.x.rebase;			
+				self.x.rebase;
 			end
 
 
