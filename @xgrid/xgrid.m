@@ -26,8 +26,7 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 
 		num_workers
 
-
-
+		n_outputs
 
 	end % end props
 
@@ -44,7 +43,6 @@ classdef xgrid < handle & matlab.mixin.CustomDisplay
 		is_master = false;
 		speed
 
-		n_outputs
 
 
 	end
