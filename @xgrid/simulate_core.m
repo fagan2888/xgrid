@@ -58,7 +58,7 @@ function simulate_core(self,idx,n_runs)
 
 
 			try
-				if isempty(self.n_outputs) | isnan(self.n_outputs)
+				if isempty(self.n_outputs) || isnan(self.n_outputs)
 					n_outputs = length(corelib.argOutNames(self.sim_func));
 				else
 					n_outputs = self.n_outputs;
