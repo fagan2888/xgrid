@@ -1,12 +1,12 @@
-%                          _                                       
-%                         | |                                      
-%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __  
-%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \ 
+%                          _
+%                         | |
+%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __
+%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \
 %    | |_) \__ \ |_| | (__| | | | (_) | |_) | (_) | | | | | | |_) |
-%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/ 
-%    | |         __/ |                | |                   | |    
+%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/
+%    | |         __/ |                | |                   | |
 %    |_|        |___/                 |_|                   |_|
-%  
+%
 
 
 function simulate_core(self,idx,n_runs)
@@ -17,7 +17,7 @@ function simulate_core(self,idx,n_runs)
 
 	while n_runs > 0
 
-		% grab a job file and move it to doing 
+		% grab a job file and move it to doing
 		do_folder = [self.xgrid_folder filesep 'do' filesep ];
 		doing_folder = [self.xgrid_folder filesep 'doing' filesep ];
 		done_folder = [self.xgrid_folder filesep 'done' filesep ];
@@ -40,14 +40,14 @@ function simulate_core(self,idx,n_runs)
 			continue
 		end
 
-		% load the file 
+		% load the file
 		load([doing_folder this_job],'-mat')
 
 
 		% check that the hash matches
 		assert(strcmp(xhash,self.xolotl_hash),'Hashes dont match')
 
-		
+
 		for i = 1:size(this_params,2)
 			% update params
 
@@ -58,7 +58,12 @@ function simulate_core(self,idx,n_runs)
 
 
 			try
-				[outputs{1:length(corelib.argOutNames(self.sim_func))}] = self.sim_func(self.x);
+				if isempty(self.n_outputs) || isnan(self.n_outputs)
+					n_outputs = length(corelib.argOutNames(self.sim_func));
+				else
+					n_outputs = self.n_outputs;
+				end
+				[outputs{1:n_outputs}] = self.sim_func(self.x);
 				sim_ok = true;
 			catch err
 				disp(err)
@@ -101,7 +106,7 @@ function simulate_core(self,idx,n_runs)
 		end
 
 		% some defensive measures to make sure that data
-		% and params are aligned 
+		% and params are aligned
 		ok = true;
 		for j = 1:length(data)
 			if size(data{j},2) ~= size(this_params,2)
@@ -117,7 +122,7 @@ function simulate_core(self,idx,n_runs)
 			movefile([doing_folder this_job],[done_folder this_job])
 
 		else
-			% not OK. give up. 
+			% not OK. give up.
 			disp('Something went wrong with this job:')
 			disp(this_job)
 			disp('This job will remain stuck in the doing queue')
@@ -128,5 +133,5 @@ function simulate_core(self,idx,n_runs)
 		clear data this_params param_idx param_names xhash
 		n_runs = n_runs - 1;
 	end
-	
+
 end
