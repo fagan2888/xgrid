@@ -1,17 +1,46 @@
-%                          _                                       
-%                         | |                                      
-%     _ __  ___ _   _  ___| |__   ___  _ __   ___  _ __ ___  _ __  
-%    | '_ \/ __| | | |/ __| '_ \ / _ \| '_ \ / _ \| '_ ` _ \| '_ \ 
-%    | |_) \__ \ |_| | (__| | | | (_) | |_) | (_) | | | | | | |_) |
-%    | .__/|___/\__, |\___|_| |_|\___/| .__/ \___/|_| |_| |_| .__/ 
-%    | |         __/ |                | |                   | |    
-%    |_|        |___/                 |_|                   |_|
-% 
+%
+% __   ____ _ _ __(_) __| |
+% \ \/ / _` | '__| |/ _` |
+%  >  < (_| | |  | | (_| |
+% /_/\_\__, |_|  |_|\__,_|
+%      |___/
+%
+% ### batchify
+%
+%
+% **Syntax**
+%
+% ```matlab
+% 	p.(params, param_names)
+% ```
+%
+% **Description**
+%
+% This function generates a series of jobs to run on the available cluster resources.
+% `params` should be an M x N numerical matrix, where M is the number of parameters,
+% and N is the number of simulations.
+% `param_names` should be an M x 1 cell array of character vectors specifying xolotl properties.
+%
+% Jobs are apportioned between the available cluster resources.
+%
+% **Technical Details**
+%
+% xgrid interprets the `param_names` as the argument to the `x.get` function,
+% For example, to get all maximal conductances, use
+% ```matlab
+% 	param_names = {'*gbar'};
+% ```
+%
+% See Also:
+% xgrid.cleanup
+% xgrid.simulate
+% xolotl.find
+
 function batchify(self,params,param_names)
 	assert(~isempty(self.x),'First configure the xolotl object')
 	assert(~isempty(self.clusters),'At least one cluster has to be connected')
 
-	% check that param names resolve correctly -- we do 
+	% check that param names resolve correctly -- we do
 	% so by attempting to read this property for each param name
 	for i = 1:length(param_names)
 
@@ -55,7 +84,7 @@ function batchify(self,params,param_names)
 		if strcmp(self.clusters(i).Name,'local')
 			continue
 		end
-		disp(['Copying job files onto ' self.clusters(i).Name])
+		corelib.verb(self.verbosity, 'INFO', ['Copying job files onto ' self.clusters(i).Name])
 
 
 		% make a list of files to copy
@@ -63,7 +92,7 @@ function batchify(self,params,param_names)
 		z = min([length(allfiles) job_distribution(i)]);
 		files_to_copy = allfiles(1:z);
 
-		% move them to a temp directory 
+		% move them to a temp directory
 		mkdir([do_folder 'remote_jobs'])
 		for j = 1:length(files_to_copy)
 			movefile([do_folder files_to_copy(j).name],[do_folder 'remote_jobs/' files_to_copy(j).name])
