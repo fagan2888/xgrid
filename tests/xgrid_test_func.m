@@ -1,12 +1,12 @@
-% this function is used in the example (test.m)
+% this function is used in the example (test_simple_sim.m)
 % to show how custom functions can be written to
-% run xolotl simulations using pyschopomp
-% 
-% functions that can be run by pyschopomp take in only
+% run xolotl simulations using xgrid
+%
+% functions that can be run by xgrid take in only
 % argument, which is the xolotl object
 % they are responsible for running the simulation, analyzing
-% outputs, and returning data that matches the dimensions 
-% specified in the data_sizes property 
+% outputs, and returning data that matches the dimensions
+% specified in the data_sizes property
 
 function [burst_period, n_spikes_per_burst, sim_time] = xgrid_test_func(x,~,~)
 
@@ -19,17 +19,16 @@ x.closed_loop = false;
 x.reset;
 
 tic
-[V,Ca] = x.integrate; 
+[V,Ca] = x.integrate;
 sim_time = toc;
 
 transient_cutoff = floor(length(V)/2);
 Ca = Ca(transient_cutoff:end,1);
 V = V(transient_cutoff:end,1);
 
-burst_metrics = xgrid.findBurstMetrics(V,Ca);
+burst_metrics = xtools.findBurstMetrics(V,Ca);
 
 burst_period = burst_metrics(1);
 n_spikes_per_burst = burst_metrics(2);
 
 disp('Sim successfully completed!')
-

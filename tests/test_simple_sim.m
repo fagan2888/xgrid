@@ -1,5 +1,5 @@
 % small script that tests xgrid
-% this simulates 100 different neurons 
+% this simulates 100 different neurons
 
 
 
@@ -37,11 +37,12 @@ p.n_batches = 3;
 p.x = x;
 p.batchify(all_params,parameters_to_vary);
 
-% configure the simulation type, and the analysis functions 
+% configure the simulation type, and the analysis functions
 p.sim_func = @xgrid_test_func;
 
-tic 
+tic
 p.simulate;
+return
 wait(p.workers)
 t = toc;
 disp(['Finished in ' mat2str(t) ' seconds. Total speed = ' mat2str((length(all_params)*x.t_end*1e-3)/t)])
